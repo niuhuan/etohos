@@ -76,9 +76,9 @@ class _EditScreenState extends State<EditScreen> {
   bool _isValidPeerUrl(String url) {
     final trimmedUrl = url.trim();
     if (trimmedUrl.isEmpty) return true; // Empty is allowed
-    
     return trimmedUrl.startsWith('tcp://') ||
            trimmedUrl.startsWith('udp://') ||
+           trimmedUrl.startsWith('wg://') ||
            trimmedUrl.startsWith('ws://') ||
            trimmedUrl.startsWith('wss://');
   }
@@ -238,7 +238,7 @@ class _EditScreenState extends State<EditScreen> {
                               return null; // Empty is allowed
                             }
                             if (!_isValidPeerUrl(value)) {
-                              return "Must start with tcp://, udp://, ws://, or wss://";
+                              return "Must start with tcp://, udp://, wg://, ws://, or wss://";
                             }
                             return null;
                           },
