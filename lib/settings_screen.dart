@@ -166,7 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               
               // Info card
               Card(
-                color: Colors.blue.shade50,
+                color: Colors.blue.shade50.withAlpha(0x30),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(

@@ -1,5 +1,6 @@
 import 'package:etohos/methods.dart';
 import 'package:etohos/app_data.dart';
+import 'package:etohos/themes.dart';
 import 'package:flutter/material.dart';
 
 import 'app_screen.dart';
@@ -14,6 +15,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: theme,
+      darkTheme: darkTheme,
       debugShowCheckedModeBanner: false,
       home: const InitScreen(),
     );

@@ -74,17 +74,17 @@ export default class EntryAbility extends FlutterAbility {
     if (this.vpnConnection === undefined) {
       try {
         await vpnExtension.startVpnExtensionAbility(vpnWant);
-        await vpnExtension.stopVpnExtensionAbility(vpnWant);
         promptAction.showToast({
           message: `VPN已授权`
         });
       } catch (e) {
-        promptAction.showToast({
-          message: `VPN权限未授权，将无法启动实例. ${e}`
-        });
-        return;
+        // promptAction.showToast({
+        //  message: `VPN权限未授权，将无法启动实例`
+        // });
+        // return;
       }
     }
+    vpnExtension.stopVpnExtensionAbility(vpnWant);
   }
 
   async connect_vpn(argsAll: Map<string, Any>) {
