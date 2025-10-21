@@ -133,8 +133,17 @@ class _AppScreenState extends State<AppScreen> {
 
     if (result != null) {
       try {
+        // Check if this is the first configuration being created
+        final wasEmpty = AppData.configs.isEmpty;
+        
         await methods.saveConfig(result);
         AppData.configs = await methods.loadConfigs();
+        
+        // Auto-select the first configuration
+        if (wasEmpty && AppData.configs.isNotEmpty) {
+          AppData.selectedConfig = AppData.configs.first;
+        }
+        
         _refreshData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Configuration saved successfully')),
