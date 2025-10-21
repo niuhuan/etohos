@@ -19,6 +19,7 @@ class _EditScreenState extends State<EditScreen> {
   late TextEditingController _networkNameController;
   late TextEditingController _networkSecretController;
   List<TextEditingController> _peerControllers = [];
+  late TextEditingController _ipv4Controller;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _EditScreenState extends State<EditScreen> {
     } else {
       _peerControllers = []; // Start with empty list, peers can be empty
     }
+    _ipv4Controller = TextEditingController(text: config?.ipv4 ?? '');
   }
 
   @override
@@ -57,6 +59,7 @@ class _EditScreenState extends State<EditScreen> {
     for (var controller in _peerControllers) {
       controller.dispose();
     }
+    _ipv4Controller.dispose();
     super.dispose();
   }
 
@@ -83,6 +86,18 @@ class _EditScreenState extends State<EditScreen> {
            trimmedUrl.startsWith('wss://');
   }
 
+  bool _isValidIPv4(String ip) {
+    final trimmedIp = ip.trim();
+    if (trimmedIp.isEmpty) return true; // Empty is allowed
+    
+    // IPv4 regex pattern
+    final ipv4Pattern = RegExp(
+      r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+    );
+    
+    return ipv4Pattern.hasMatch(trimmedIp);
+  }
+
   void _saveConfig() {
     if (_formKey.currentState!.validate()) {
       final peers = _peerControllers
@@ -97,6 +112,7 @@ class _EditScreenState extends State<EditScreen> {
         networkName: _networkNameController.text.trim(),
         networkSecret: _networkSecretController.text.trim(),
         peers: peers,
+        ipv4: _ipv4Controller.text.trim(),
       );
       
       Navigator.of(context).pop(config);
@@ -254,6 +270,40 @@ class _EditScreenState extends State<EditScreen> {
                   ),
                 );
               }),
+
+
+              const SizedBox(height: 24),
+              
+              // Peers section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Other Settings",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // IPv4 Address
+              TextFormField(
+                controller: _ipv4Controller,
+                decoration: const InputDecoration(
+                  labelText: "IPv4 Address",
+                  hintText: "Enter IPv4 address (optional)",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return null; // Empty is allowed
+                  }
+                  if (!_isValidIPv4(value)) {
+                    return "Please enter a valid IPv4 address (e.g., 192.168.1.1)";
+                  }
+                  return null;
+                },
+              ),
               
               const SizedBox(height: 32),
               

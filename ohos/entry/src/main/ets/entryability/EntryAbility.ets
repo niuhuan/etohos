@@ -23,6 +23,12 @@ let entryWant: Want = {
   abilityName: "EntryAbility"
 };
 
+let isConnected = false;
+let vpnConnection: vpnExtension.VpnConnection | undefined
+let tun_fd: number = -1
+let time_id: number = -1
+let running_inst = ""
+
 export default class EntryAbility extends FlutterAbility {
   configureFlutterEngine(flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
@@ -30,12 +36,6 @@ export default class EntryAbility extends FlutterAbility {
       .setMethodCallHandler(this)
     GeneratedPluginRegistrant.registerWith(flutterEngine)
   }
-
-  isConnected = false;
-  vpnConnection: vpnExtension.VpnConnection | undefined
-  tun_fd: number = -1
-  time_id: number = -1
-  running_inst = ""
 
   async onMethodCall(call: MethodCall, result: MethodResult) {
     hilog.warn(0, 'onMethodCall', '%{public}s', call.method);
@@ -57,6 +57,11 @@ export default class EntryAbility extends FlutterAbility {
           await this.disconnect_vpn();
           result.success("");
           break;
+        case 'connect_state':
+          result.success({
+            isConnected: isConnected,
+            runningInst: running_inst,
+          });
         default:
           result.error("-1", `no call`, null);
           break;
@@ -73,7 +78,7 @@ export default class EntryAbility extends FlutterAbility {
       });
       return;
     }
-    if (this.vpnConnection === undefined) {
+    if (vpnConnection === undefined) {
       try {
         await vpnExtension.startVpnExtensionAbility(vpnWant);
         promptAction.showToast({
@@ -118,13 +123,22 @@ export default class EntryAbility extends FlutterAbility {
   }
 
   async connect_vpn(argsAll: Map<string, Any>) {
-    if (this.isConnected) {
+    if (isConnected) {
       throw Error("connected");
     }
-    this.isConnected = true;
+    isConnected = true;
     let settings: Map<string, Any> = argsAll.get("settings");
     let dnsList: Array<string> = settings.get("dnsList");
     let args: Map<string, Any> = argsAll.get("args");
+    let optional = "";
+    let ipv4: string = args.get("ipv4");
+    if (ipv4) {
+      optional += "\n";
+      optional += `ipv4 = "${ipv4}"`
+    } else {
+      optional += "\n";
+      optional += `dhcp = true`
+    }
     let peers = "";
     args.get("peers").forEach((element: string) => {
       peers += `
@@ -136,10 +150,10 @@ uri = "${element}"
 instance_id = "${args.get("instanceId")}"
 instance_name = "${args.get("instanceName")}"
 hostname = "${args.get("hostname")}"
-dhcp = true
 listeners = []
 rpc_portal = "0.0.0.0:0"
 routes = []
+${optional}
 [network_identity]
 network_name = "${args.get("networkName")}"
 network_secret = "${args.get("networkSecret")}"
@@ -149,12 +163,12 @@ accept_dns = true
 dev_name = "vpn-tun"
 mtu = 1500
     `;
-    this.running_inst = args.get("instanceId");
+    running_inst = args.get("instanceId");
     if (runNetworkInstance(etConfigString)) {
       hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] Successfully started")
     } else {
       hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] Failed to start")
-      this.isConnected = false;
+      isConnected = false;
       throw Error("config error");
     }
 
@@ -177,7 +191,7 @@ mtu = 1500
 
     backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
       let needSetTun = true;
-      this.time_id = setInterval(() => {
+      time_id = setInterval(() => {
         hilog.warn(0, 'loop', '%{public}s', "setInterval");
         let infos = collectNetworkInfos();
         hilog.warn(0, 'loop', '%{public}s', "infos : " + JSON.stringify(infos));
@@ -206,10 +220,10 @@ mtu = 1500
                 dnsAddresses: dnsList,
               };
               let setUpTun = async () => {
-                this.vpnConnection =
+                vpnConnection =
                   vpnExtension.createVpnConnection(getContext(this) as vpnExtension.VpnExtensionContext)
-                let fd = await this.vpnConnection.create(vpnConfig);
-                setTunFd(this.running_inst, fd);
+                let fd = await vpnConnection.create(vpnConfig);
+                setTunFd(running_inst, fd);
               };
               setUpTun();
             }
@@ -217,8 +231,8 @@ mtu = 1500
         }
       }, 3000);
     }).catch((e: Any) => {
-      this.isConnected = false;
-      stopNetworkInstance([this.running_inst]);
+      isConnected = false;
+      stopNetworkInstance([running_inst]);
       promptAction.showToast({
         message: `${JSON.stringify(e)}`,
         duration: 2000
@@ -228,10 +242,10 @@ mtu = 1500
 
   async disconnect_vpn() {
     backgroundTaskManager.stopBackgroundRunning(this.context);
-    this.vpnConnection?.destroy();
-    clearInterval(this.time_id);
-    stopNetworkInstance([this.running_inst]);
-    this.isConnected = false;
+    vpnConnection?.destroy();
+    clearInterval(time_id);
+    stopNetworkInstance([running_inst]);
+    isConnected = false;
   }
 }
 

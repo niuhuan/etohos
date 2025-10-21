@@ -129,4 +129,48 @@ class Methods {
       throw Exception('Failed to save settings: $e');
     }
   }
+
+  Future<ConnectState> connectState() async {
+    try {
+      final result = await _channel.invokeMethod("connect_state");
+      return ConnectState(
+        isConnected: result['isConnected'] ?? false,
+        runningInst: result['runningInst'] ?? '',
+      );
+    } catch (e) {
+      print('Error getting connection state: $e');
+      return const ConnectState(
+        isConnected: false,
+        runningInst: '',
+      );
+    }
+  }
+}
+
+class ConnectState {
+  final bool isConnected;
+  final String runningInst;
+
+  const ConnectState({
+    required this.isConnected,
+    required this.runningInst,
+  });
+
+  @override
+  String toString() {
+    return 'ConnectState(isConnected: $isConnected, runningInst: $runningInst)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ConnectState &&
+        other.isConnected == isConnected &&
+        other.runningInst == runningInst;
+  }
+
+  @override
+  int get hashCode {
+    return isConnected.hashCode ^ runningInst.hashCode;
+  }
 }

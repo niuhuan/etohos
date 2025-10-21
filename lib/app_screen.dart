@@ -18,7 +18,7 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
-  bool _isConnecting = false; // Loading state for connection operations
+  bool _isConnecting = AppData.connected; // Loading state for connection operations
 
   @override
   void initState() {
@@ -165,8 +165,17 @@ class _AppScreenState extends State<AppScreen> {
 
     if (result != null) {
       try {
+        // Check if we're editing the currently selected config
+        final wasSelectedConfig = AppData.selectedConfig?.instanceId == config.instanceId;
+        
         await methods.saveConfig(result);
         AppData.configs = await methods.loadConfigs();
+        
+        // If we edited the selected config, update the selected config reference
+        if (wasSelectedConfig) {
+          AppData.selectedConfig = result;
+        }
+        
         _refreshData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Configuration updated successfully')),

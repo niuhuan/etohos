@@ -6,6 +6,7 @@ class EtConfig {
   final String networkName;
   final String networkSecret;
   final List<String> peers;
+  final String ipv4;
 
   const EtConfig({
     required this.instanceId,
@@ -14,6 +15,7 @@ class EtConfig {
     required this.networkName,
     required this.networkSecret,
     required this.peers,
+    required this.ipv4,
   });
 
   // Create object from JSON
@@ -25,6 +27,7 @@ class EtConfig {
       networkName: json['networkName'] as String,
       networkSecret: json['networkSecret'] as String,
       peers: List<String>.from(json['peers'] as List),
+      ipv4: (json['ipv4'] ?? '') as String
     );
   }
 
@@ -37,6 +40,7 @@ class EtConfig {
       'networkName': networkName,
       'networkSecret': networkSecret,
       'peers': peers,
+      'ipv4': ipv4,
     };
   }
 
@@ -48,6 +52,7 @@ class EtConfig {
     String? networkName,
     String? networkSecret,
     List<String>? peers,
+    String? ipv4,
   }) {
     return EtConfig(
       instanceId: instanceId ?? this.instanceId,
@@ -56,6 +61,7 @@ class EtConfig {
       networkName: networkName ?? this.networkName,
       networkSecret: networkSecret ?? this.networkSecret,
       peers: peers ?? this.peers,
+      ipv4: ipv4 ?? this.ipv4,
     );
   }
 
@@ -68,7 +74,9 @@ class EtConfig {
         other.hostname == hostname &&
         other.networkName == networkName &&
         other.networkSecret == networkSecret &&
-        _listEquals(other.peers, peers);
+        _listEquals(other.peers, peers) &&
+        other.ipv4 == ipv4
+    ;
   }
 
   @override
@@ -78,12 +86,13 @@ class EtConfig {
         hostname.hashCode ^
         networkName.hashCode ^
         networkSecret.hashCode ^
-        peers.hashCode;
+        peers.hashCode ^
+        ipv4.hashCode;
   }
 
   @override
   String toString() {
-    return 'EtConfig(instanceId: $instanceId, instanceName: $instanceName, hostname: $hostname, networkName: $networkName, networkSecret: $networkSecret, peers: $peers)';
+    return 'EtConfig(instanceId: $instanceId, instanceName: $instanceName, hostname: $hostname, networkName: $networkName, networkSecret: $networkSecret, peers: $peers, ipv4: $ipv4)';
   }
 
   // Helper method: compare if two lists are equal
