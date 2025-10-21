@@ -90,11 +90,11 @@ export default class EntryAbility extends FlutterAbility {
 
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
-    if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
+    //if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
       await this.checkPermissionGrant('ohos.permission.LOCATION')
       await this.checkPermissionGrant('ohos.permission.LOCATION_IN_BACKGROUND')
       await this.checkPermissionGrant('ohos.permission.APPROXIMATELY_LOCATION')
-    }
+    //}
   }
 
   async checkPermissionGrant(permission: Permissions): Promise<abilityAccessCtrl.GrantStatus> {
@@ -169,11 +169,11 @@ mtu = 1500
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
     let bgMod: string[] = [];
-    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType) {
-      bgMod = ["taskKeeping"];
-    } else {
+    //if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType) {
+    //  bgMod = ["taskKeeping"];
+    //} else {
       bgMod = ["location"];
-    }
+    //}
 
     backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
       let needSetTun = true;
