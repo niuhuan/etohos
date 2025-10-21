@@ -11,6 +11,10 @@
     {
       "name": "EntryAbility_label",
       "value": "etohos"
+    },
+    {
+      "name": "location_reason",
+      "value": "keep task in background"
     }
   ]
 }

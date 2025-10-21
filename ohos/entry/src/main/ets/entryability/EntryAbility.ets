@@ -9,6 +9,8 @@ import { BusinessError, deviceInfo } from "@kit.BasicServicesKit";
 import { promptAction } from '@kit.ArkUI';
 import { JSON, util } from '@kit.ArkTS';
 import { NetworkInstanceRunningInfo } from './PeerInfo';
+import { resourceManager } from '@kit.LocalizationKit'
+import { abilityAccessCtrl, bundleManager, common, Permissions } from '@kit.AbilityKit';
 
 let vpnWant: Want = {
   deviceId: "",
@@ -85,6 +87,34 @@ export default class EntryAbility extends FlutterAbility {
       }
     }
     vpnExtension.stopVpnExtensionAbility(vpnWant);
+
+    let value = this.context.resourceManager.getDeviceCapabilitySync();
+    let deviceType = value.deviceType;
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
+      await this.checkPermissionGrant('ohos.permission.LOCATION')
+      await this.checkPermissionGrant('ohos.permission.LOCATION_IN_BACKGROUND')
+      await this.checkPermissionGrant('ohos.permission.APPROXIMATELY_LOCATION')
+    }
+  }
+
+  async checkPermissionGrant(permission: Permissions): Promise<abilityAccessCtrl.GrantStatus> {
+    let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
+    let grantStatus: abilityAccessCtrl.GrantStatus = abilityAccessCtrl.GrantStatus.PERMISSION_DENIED;
+    let tokenId: number = 0;
+    try {
+      let bundleInfo: bundleManager.BundleInfo =
+        await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION);
+      let appInfo: bundleManager.ApplicationInfo = bundleInfo.appInfo;
+      tokenId = appInfo.accessTokenId;
+    } catch (error) {
+      const err: BusinessError = error as BusinessError;
+    }
+    try {
+      grantStatus = await atManager.checkAccessToken(tokenId, permission);
+    } catch (error) {
+      const err: BusinessError = error as BusinessError;
+    }
+    return grantStatus;
   }
 
   async connect_vpn(argsAll: Map<string, Any>) {
@@ -135,7 +165,17 @@ mtu = 1500
       actionFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
     };
     let agent = await wantAgent.getWantAgent(wantAgentInfo);
-    backgroundTaskManager.startBackgroundRunning(this.context, ["taskKeeping"], agent).then(() => {
+
+    let value = this.context.resourceManager.getDeviceCapabilitySync();
+    let deviceType = value.deviceType;
+    let bgMod: string[] = [];
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType) {
+      bgMod = ["taskKeeping"];
+    } else {
+      bgMod = ["location"];
+    }
+
+    backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
       let needSetTun = true;
       this.time_id = setInterval(() => {
         hilog.warn(0, 'loop', '%{public}s', "setInterval");
