@@ -75,11 +75,11 @@ export default class EntryAbility extends FlutterAbility {
       try {
         await vpnExtension.startVpnExtensionAbility(vpnWant);
         promptAction.showToast({
-          message: `VPN已授权`
+          message: `VPN authorized`
         });
       } catch (e) {
         // promptAction.showToast({
-        //  message: `VPN权限未授权，将无法启动实例`
+        //  message: `VPN permission not authorized, instance cannot be started`
         // });
         // return;
       }
@@ -121,9 +121,9 @@ mtu = 1500
     `;
     this.running_inst = args.get("instanceId");
     if (runNetworkInstance(etConfigString)) {
-      hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] 成功启动")
+      hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] Successfully started")
     } else {
-      hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] 失败启动")
+      hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] Failed to start")
       this.isConnected = false;
       throw Error("config error");
     }
@@ -151,7 +151,7 @@ mtu = 1500
             if (needSetTun && infos.my_node_info.virtual_ipv4 != null && infos.peers.length > 0) {
               needSetTun = false;
               let vpnConfig: vpnExtension.VpnConfig = {
-                // 配置VPN虚拟网卡的IP地址。
+                // Configure VPN virtual network card IP address.
                 addresses: [{
                   address: {
                     address: convertAddrToIp(infos.my_node_info.virtual_ipv4.address.addr),

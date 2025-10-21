@@ -5,21 +5,21 @@ class Settings {
     required this.dnsList,
   });
 
-  // 从 JSON 创建对象
+  // Create object from JSON
   factory Settings.fromJson(Map<String, dynamic> json) {
     return Settings(
       dnsList: List<String>.from(json['dnsList'] as List),
     );
   }
 
-  // 转换为 JSON
+  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'dnsList': dnsList,
     };
   }
 
-  // 复制对象并修改部分字段
+  // Copy object and modify some fields
   Settings copyWith({
     List<String>? dnsList,
   }) {
@@ -45,7 +45,7 @@ class Settings {
     return 'Settings(dnsList: $dnsList)';
   }
 
-  // 辅助方法：比较两个列表是否相等
+  // Helper method: compare if two lists are equal
   bool _listEquals<T>(List<T> a, List<T> b) {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {

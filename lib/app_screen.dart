@@ -23,7 +23,7 @@ class _AppScreenState extends State<AppScreen> {
   @override
   void initState() {
     super.initState();
-    // 初始化选中配置
+    // Initialize selected configuration
     if (AppData.configs.isNotEmpty && AppData.selectedConfig == null) {
       AppData.selectedConfig = AppData.configs.first;
     }
@@ -31,7 +31,7 @@ class _AppScreenState extends State<AppScreen> {
 
   void _refreshData() {
     setState(() {
-      // 触发UI更新
+      // Trigger UI update
     });
   }
 

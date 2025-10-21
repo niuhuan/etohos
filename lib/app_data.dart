@@ -3,7 +3,7 @@ import 'package:etohos/settings.dart';
 
 import 'methods.dart';
 
-// 静态数据缓存类
+// Static data cache class
 class AppData {
   static List<EtConfig> configs = [];
   static Settings settings =

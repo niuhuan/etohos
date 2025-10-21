@@ -16,7 +16,7 @@ class EtConfig {
     required this.peers,
   });
 
-  // 从 JSON 创建对象
+  // Create object from JSON
   factory EtConfig.fromJson(Map<String, dynamic> json) {
     return EtConfig(
       instanceId: json['instanceId'] as String,
@@ -28,7 +28,7 @@ class EtConfig {
     );
   }
 
-  // 转换为 JSON
+  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'instanceId': instanceId,
@@ -40,7 +40,7 @@ class EtConfig {
     };
   }
 
-  // 复制对象并修改部分字段
+  // Copy object and modify some fields
   EtConfig copyWith({
     String? instanceId,
     String? instanceName,
@@ -86,7 +86,7 @@ class EtConfig {
     return 'EtConfig(instanceId: $instanceId, instanceName: $instanceName, hostname: $hostname, networkName: $networkName, networkSecret: $networkSecret, peers: $peers)';
   }
 
-  // 辅助方法：比较两个列表是否相等
+  // Helper method: compare if two lists are equal
   bool _listEquals<T>(List<T> a, List<T> b) {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
