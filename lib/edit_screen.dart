@@ -20,6 +20,15 @@ class _EditScreenState extends State<EditScreen> {
   late TextEditingController _networkSecretController;
   List<TextEditingController> _peerControllers = [];
   late TextEditingController _ipv4Controller;
+  bool _dhcp = false;
+  bool _enableKcpProxy = false;
+  bool _disableKcpInput = false;
+  bool _enableQuicProxy = false;
+  bool _disableQuicInput = false;
+  bool _privateMode = false;
+  bool _latencyFirst = false;
+  bool _useSmoltcp = false;
+  bool _noTun = false;
 
   @override
   void initState() {
@@ -47,6 +56,15 @@ class _EditScreenState extends State<EditScreen> {
       _peerControllers = []; // Start with empty list, peers can be empty
     }
     _ipv4Controller = TextEditingController(text: config?.ipv4 ?? '');
+    _dhcp = config?.dhcp ?? true;
+    _enableKcpProxy = config?.enableKcpProxy ?? false;
+    _disableKcpInput = config?.disableKcpInput ?? false;
+    _enableQuicProxy = config?.enableQuicProxy ?? false;
+    _disableQuicInput = config?.disableQuicInput ?? false;
+    _privateMode = config?.privateMode ?? false;
+    _latencyFirst = config?.latencyFirst ?? false;
+    _useSmoltcp = config?.useSmoltcp ?? false;
+    _noTun = config?.noTun ?? false;
   }
 
   @override
@@ -113,6 +131,15 @@ class _EditScreenState extends State<EditScreen> {
         networkSecret: _networkSecretController.text.trim(),
         peers: peers,
         ipv4: _ipv4Controller.text.trim(),
+        dhcp: _dhcp,
+        enableKcpProxy: _enableKcpProxy,
+        disableKcpInput: _disableKcpInput,
+        enableQuicProxy: _enableQuicProxy,
+        disableQuicInput: _disableQuicInput,
+        privateMode: _privateMode,
+        latencyFirst: _latencyFirst,
+        useSmoltcp: _useSmoltcp,
+        noTun: _noTun,
       );
       
       Navigator.of(context).pop(config);
@@ -271,21 +298,7 @@ class _EditScreenState extends State<EditScreen> {
                 );
               }),
 
-
               const SizedBox(height: 24),
-              
-              // Peers section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Other Settings",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
               // IPv4 Address
               TextFormField(
                 controller: _ipv4Controller,
@@ -302,6 +315,127 @@ class _EditScreenState extends State<EditScreen> {
                     return "Please enter a valid IPv4 address (e.g., 192.168.1.1)";
                   }
                   return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              
+              // Advanced Settings section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Advanced Settings",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // DHCP
+              SwitchListTile(
+                title: const Text("DHCP"),
+                subtitle: const Text("Enable DHCP for automatic IP assignment"),
+                value: _dhcp,
+                onChanged: (value) {
+                  setState(() {
+                    _dhcp = value;
+                  });
+                },
+              ),
+              
+              // Enable KCP Proxy
+              SwitchListTile(
+                title: const Text("Enable KCP Proxy"),
+                subtitle: const Text("Use KCP protocol for better performance"),
+                value: _enableKcpProxy,
+                onChanged: (value) {
+                  setState(() {
+                    _enableKcpProxy = value;
+                  });
+                },
+              ),
+              
+              // Disable KCP Input
+              SwitchListTile(
+                title: const Text("Disable KCP Input"),
+                subtitle: const Text("Disable KCP input processing"),
+                value: _disableKcpInput,
+                onChanged: (value) {
+                  setState(() {
+                    _disableKcpInput = value;
+                  });
+                },
+              ),
+              
+              // Enable QUIC Proxy
+              SwitchListTile(
+                title: const Text("Enable QUIC Proxy"),
+                subtitle: const Text("Use QUIC protocol for better performance"),
+                value: _enableQuicProxy,
+                onChanged: (value) {
+                  setState(() {
+                    _enableQuicProxy = value;
+                  });
+                },
+              ),
+              
+              // Disable QUIC Input
+              SwitchListTile(
+                title: const Text("Disable QUIC Input"),
+                subtitle: const Text("Disable QUIC input processing"),
+                value: _disableQuicInput,
+                onChanged: (value) {
+                  setState(() {
+                    _disableQuicInput = value;
+                  });
+                },
+              ),
+              
+              // Private Mode
+              SwitchListTile(
+                title: const Text("Private Mode"),
+                subtitle: const Text("Enable private mode for enhanced security"),
+                value: _privateMode,
+                onChanged: (value) {
+                  setState(() {
+                    _privateMode = value;
+                  });
+                },
+              ),
+              
+              // Latency First
+              SwitchListTile(
+                title: const Text("Latency First"),
+                subtitle: const Text("Prioritize low latency over throughput"),
+                value: _latencyFirst,
+                onChanged: (value) {
+                  setState(() {
+                    _latencyFirst = value;
+                  });
+                },
+              ),
+              
+              // Use Smoltcp
+              SwitchListTile(
+                title: const Text("Use Smoltcp"),
+                subtitle: const Text("Use smoltcp user-space stack"),
+                value: _useSmoltcp,
+                onChanged: (value) {
+                  setState(() {
+                    _useSmoltcp = value;
+                  });
+                },
+              ),
+              
+              // No TUN
+              SwitchListTile(
+                title: const Text("No TUN"),
+                subtitle: const Text("Disable TUN interface mode"),
+                value: _noTun,
+                onChanged: (value) {
+                  setState(() {
+                    _noTun = value;
+                  });
                 },
               ),
               

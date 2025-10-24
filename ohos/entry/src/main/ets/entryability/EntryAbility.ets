@@ -135,10 +135,55 @@ export default class EntryAbility extends FlutterAbility {
     if (ipv4) {
       optional += "\n";
       optional += `ipv4 = "${ipv4}"`
-    } else {
+    }
+
+    let dhcp: string = args.get("dhcp");
+    if (dhcp) {
       optional += "\n";
       optional += `dhcp = true`
     }
+    let enable_kcp_proxy: string = args.get("enable_kcp_proxy");
+    if (enable_kcp_proxy) {
+      optional += "\n";
+      optional += `enable_kcp_proxy = true`
+    }
+    let disable_kcp_input: string = args.get("disable_kcp_input");
+    if (disable_kcp_input) {
+      optional += "\n";
+      optional += `disable_kcp_input = true`
+    }
+    let enable_quic_proxy: string = args.get("enable_quic_proxy");
+    if (enable_quic_proxy) {
+      optional += "\n";
+      optional += `enable_quic_proxy = true`
+    }
+    let disable_quic_input: string = args.get("disable_quic_input");
+    if (disable_quic_input) {
+      optional += "\n";
+      optional += `disable_quic_input = true`
+    }
+    let private_mode: string = args.get("private_mode");
+    if (private_mode) {
+      optional += "\n";
+      optional += `private_mode = true`
+    }
+    let latency_first: string = args.get("latency_first");
+    if (latency_first) {
+      optional += "\n";
+      optional += `latency_first = true`
+    }
+    let use_smoltcp: string = args.get("use_smoltcp");
+    if (use_smoltcp) {
+      optional += "\n";
+      optional += `use_smoltcp = true`
+    }
+    let no_tun: string = args.get("no_tun");
+    if (no_tun) {
+      optional += "\n";
+      optional += `no_tun = true`
+    }
+
+
     let peers = "";
     args.get("peers").forEach((element: string) => {
       peers += `
