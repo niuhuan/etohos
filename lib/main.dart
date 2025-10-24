@@ -48,16 +48,16 @@ class _InitScreenState extends State<InitScreen> {
       AppData.configs = await methods.loadConfigs();
       AppData.settings = await methods.loadSettings();
 
-      final state = await methods.connectState();
-      if (state.isConnected) {
-        AppData.connected = true;
-        for (var cfg in AppData.configs) {
-          if (cfg.instanceName == state.runningInst) {
-            AppData.selectedConfig = cfg;
-            break;
-          }
-        }
-      }
+      // final state = await methods.connectState();
+      // if (state.isConnected) {
+      //   AppData.connected = true;
+      //   for (var cfg in AppData.configs) {
+      //     if (cfg.instanceName == state.runningInst) {
+      //       AppData.selectedConfig = cfg;
+      //       break;
+      //     }
+      //   }
+      // }
       
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(

@@ -6,6 +6,8 @@ import 'package:etohos/edit_screen.dart';
 import 'package:etohos/settings.dart';
 import 'package:etohos/settings_screen.dart';
 import 'package:etohos/app_data.dart';
+import 'package:etohos/network_status.dart';
+import 'package:etohos/log_viewer.dart';
 import 'package:flutter/material.dart';
 
 import 'methods.dart';
@@ -253,8 +255,20 @@ class _AppScreenState extends State<AppScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Easytier App"),
+        title: const Text("EasytierOHOS"),
         actions: [
+          // 日志查看按钮
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const LogViewer(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.list_alt),
+            tooltip: 'View Logs',
+          ),
           // 设置按钮
           IconButton(
             onPressed: _openSettings,
@@ -291,9 +305,13 @@ class _AppScreenState extends State<AppScreen> {
                     ),
                   ),
                 ],
+
               ],
             ),
           ),
+          
+          // Network Status (only show when connected)
+          const NetworkStatus(),
           
           // Configurations list
           Expanded(
@@ -317,8 +335,11 @@ class _AppScreenState extends State<AppScreen> {
                     ),
                   )
                 : ListView.builder(
-                    itemCount: AppData.configs.length,
+                    itemCount: AppData.configs.length + 1,
                     itemBuilder: (context, index) {
+                      if (index == AppData.configs.length) {
+                        return SafeArea(child: Container(height: 100));
+                      }
                       final config = AppData.configs[index];
                       final isSelected = AppData.selectedConfig?.instanceId == config.instanceId;
                       

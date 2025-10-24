@@ -29,6 +29,19 @@ let tun_fd: number = -1
 let time_id: number = -1
 let running_inst = ""
 
+// Network status tracking
+let networkHistory: Array<NetworkData> = []
+let lastTotalRx: number = 0
+let lastTotalTx: number = 0
+
+interface NetworkData {
+  timestamp: number;
+  rxBytes: number;
+  txBytes: number;
+  ip: string;
+  hostname: string;
+}
+
 export default class EntryAbility extends FlutterAbility {
   configureFlutterEngine(flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
@@ -62,6 +75,13 @@ export default class EntryAbility extends FlutterAbility {
             isConnected: isConnected,
             runningInst: running_inst,
           });
+        case 'collect_network_infos':
+          let json = collectNetworkInfos();
+          result.success(json)
+          break;
+        case 'get_network_history':
+          result.success(networkHistory);
+          break;
         default:
           result.error("-1", `no call`, null);
           break;
@@ -239,14 +259,19 @@ mtu = 1500
       time_id = setInterval(() => {
         hilog.warn(0, 'loop', '%{public}s', "setInterval");
         let infos = collectNetworkInfos();
-        hilog.warn(0, 'loop', '%{public}s', "infos : " + JSON.stringify(infos));
+        hilog.warn(0, 'loop', '%{public}s', "infos :" +
+          " " + JSON.stringify(infos));
         for (let element of infos) {
           hilog.warn(0, 'loop', '%{public}s', "element : " + JSON.stringify(element));
           let json: Any = JSON.parse(element.value);
           hilog.warn(0, 'loop', '%{public}s', "json : " + JSON.stringify(json));
           if (json) {
             let infos = json as NetworkInstanceRunningInfo;
-            hilog.warn(0, 'loop', '%{public}s', "infos2 : " + JSON.stringify(infos));
+            hilog.warn(0, 'loop', '%{public}s', "infos2 : " + JSON.stringify(infos));1
+            
+            // Record network status data
+            this.recordNetworkStatus(infos);
+            
             if (needSetTun && infos.my_node_info.virtual_ipv4 != null && infos.peers.length > 0) {
               needSetTun = false;
               let vpnConfig: vpnExtension.VpnConfig = {
@@ -291,6 +316,60 @@ mtu = 1500
     clearInterval(time_id);
     stopNetworkInstance([running_inst]);
     isConnected = false;
+  }
+
+  recordNetworkStatus(infos: NetworkInstanceRunningInfo) {
+    try {
+      // Calculate total traffic
+      let totalRx = 0;
+      let totalTx = 0;
+      
+      infos.peer_route_pairs.forEach((peerRoute) => {
+        if (peerRoute.peer) {
+          peerRoute.peer.conns.forEach((conn) => {
+            totalRx += conn.stats?.rx_bytes ?? 0;
+            totalTx += conn.stats?.tx_bytes ?? 0;
+          });
+        }
+      });
+      
+      // Calculate delta (bytes per second)
+      let rxDelta = totalRx - lastTotalRx;
+      let txDelta = totalTx - lastTotalTx;
+      
+      // Get IP and hostname
+      let ip = "";
+      let hostname = infos.my_node_info.hostname ?? "";
+      
+      if (infos.my_node_info.virtual_ipv4) {
+        ip = convertAddrToIp(infos.my_node_info.virtual_ipv4.address.addr);
+      }
+      
+      // Only record if we have previous data (not the first record)
+      if (lastTotalRx > 0 && lastTotalTx > 0) {
+        let networkData: NetworkData = {
+          timestamp: Date.now(),
+          rxBytes: rxDelta,
+          txBytes: txDelta,
+          ip: ip,
+          hostname: hostname
+        };
+        
+        networkHistory.push(networkData);
+        
+        // Keep only last 20 records
+        if (networkHistory.length > 20) {
+          networkHistory.shift();
+        }
+      }
+      
+      // Update last totals
+      lastTotalRx = totalRx;
+      lastTotalTx = totalTx;
+      
+    } catch (e) {
+      hilog.error(0, 'recordNetworkStatus', 'Error recording network status: %{public}s', JSON.stringify(e));
+    }
   }
 }
 

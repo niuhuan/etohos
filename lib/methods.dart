@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:etohos/et_config.dart';
 import 'package:etohos/settings.dart';
+import 'package:etohos/utils/logger.dart';
 import 'package:flutter/services.dart';
 
 const defaultDnsList = ['223.5.5.5', '223.6.6.6', '8.8.8.8', '8.8.4.4'];
@@ -49,7 +50,7 @@ class Methods {
       
       return jsonList.map((json) => EtConfig.fromJson(json)).toList();
     } catch (e) {
-      print('Error loading configs: $e');
+      AppLogger.error('Error loading configs', error: e);
       return [];
     }
   }
@@ -62,7 +63,7 @@ class Methods {
       
       await file.writeAsString(jsonString);
     } catch (e) {
-      print('Error saving configs: $e');
+      AppLogger.error('Error saving configs', error: e);
       throw Exception('Failed to save configs: $e');
     }
   }
@@ -111,7 +112,7 @@ class Methods {
       
       return Settings.fromJson(json);
     } catch (e) {
-      print('Error loading settings: $e');
+      AppLogger.error('Error loading settings', error: e);
       // Return default settings on error
       return const Settings(dnsList: defaultDnsList);
     }
@@ -125,24 +126,18 @@ class Methods {
       final jsonString = jsonEncode(settings.toJson());
       await file.writeAsString(jsonString);
     } catch (e) {
-      print('Error saving settings: $e');
+      AppLogger.error('Error saving settings', error: e);
       throw Exception('Failed to save settings: $e');
     }
   }
 
-  Future<ConnectState> connectState() async {
+  Future<List<dynamic>> getNetworkHistory() async {
     try {
-      final result = await _channel.invokeMethod("connect_state");
-      return ConnectState(
-        isConnected: result['isConnected'] ?? false,
-        runningInst: result['runningInst'] ?? '',
-      );
+      final result = await _channel.invokeMethod("get_network_history");
+      return result ?? [];
     } catch (e) {
-      print('Error getting connection state: $e');
-      return const ConnectState(
-        isConnected: false,
-        runningInst: '',
-      );
+      AppLogger.error('Error getting network history', error: e);
+      return [];
     }
   }
 }

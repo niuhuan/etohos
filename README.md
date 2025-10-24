@@ -4,6 +4,8 @@
 
 ## Getting Started
 
+<img src="images/1.pic.jpg" width="230" /> <img src="images/2.pic.jpg" width="230" />
+
 ![](images/screenshoot01.png)
 
 ![](images/screenshoot02.png)
