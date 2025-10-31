@@ -15,6 +15,38 @@
     {
       "name": "location_reason",
       "value": "keep task in background"
+    },
+    {
+      "name": "vpn_authorized",
+      "value": "VPN authorized"
+    },
+    {
+      "name": "vpn_not_authorized",
+      "value": "VPN permission not authorized, instance cannot be started"
+    },
+    {
+      "name": "emulator_detected",
+      "value": "Emulator detected"
+    },
+    {
+      "name": "connection_started",
+      "value": "Connection started"
+    },
+    {
+      "name": "connection_failed",
+      "value": "Connection failed"
+    },
+    {
+      "name": "config_error",
+      "value": "Configuration error"
+    },
+    {
+      "name": "language_changed",
+      "value": "Language changed"
+    },
+    {
+      "name": "language_change_failed",
+      "value": "Failed to change language"
     }
   ]
 }

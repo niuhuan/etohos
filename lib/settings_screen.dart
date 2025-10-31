@@ -1,5 +1,10 @@
 import 'package:etohos/settings.dart';
+import 'package:etohos/l10n/l10n_extensions.dart';
+import 'package:etohos/l10n/locale_provider.dart';
+import 'package:etohos/l10n/theme_provider.dart';
+import 'package:etohos/methods.dart';
 import 'package:flutter/material.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Settings? source;
@@ -11,8 +16,9 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _formKey = GlobalKey<FormState>();
-  List<TextEditingController> _dnsControllers = [];
+  List<String> _dnsList = [];
+  String _selectedLanguage = 'auto';
+  String _selectedTheme = 'system';
 
   @override
   void initState() {
@@ -23,51 +29,107 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _initializeControllers() {
     final settings = widget.source;
     
-    // Initialize DNS controllers based on current settings
-    if (settings?.dnsList != null && settings!.dnsList.isNotEmpty) {
-      _dnsControllers = settings.dnsList.map((dns) => TextEditingController(text: dns)).toList();
-    } else {
-      // If no settings provided, start with empty list
-      _dnsControllers = [TextEditingController()];
-    }
+    // Initialize DNS list
+    _dnsList = settings?.dnsList ?? [];
+    
+    // Initialize language and theme
+    _selectedLanguage = localeSignal.value?.languageCode ?? 'zh';
+    _selectedTheme = settings?.themeMode ?? 'system';
   }
 
   @override
   void dispose() {
-    for (var controller in _dnsControllers) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
-  void _addDns() {
-    setState(() {
-      _dnsControllers.add(TextEditingController());
-    });
+  Future<void> _saveDnsSettings() async {
+    final settings = Settings(
+      dnsList: _dnsList,
+      themeMode: _selectedTheme,
+    );
+    await methods.saveSettings(settings);
   }
 
-  void _removeDns(int index) {
-    if (_dnsControllers.length > 1) {
+  void _addDns() async {
+    final result = await _showEditDnsDialog(null, -1);
+    if (result != null && result.isNotEmpty) {
       setState(() {
-        _dnsControllers[index].dispose();
-        _dnsControllers.removeAt(index);
+        _dnsList.add(result);
       });
+      await _saveDnsSettings();
     }
   }
 
-  void _saveSettings() {
-    if (_formKey.currentState!.validate()) {
-      final dnsList = _dnsControllers
-          .map((controller) => controller.text.trim())
-          .where((text) => text.isNotEmpty)
-          .toList();
-      
-      final settings = Settings(
-        dnsList: dnsList,
-      );
-      
-      Navigator.of(context).pop(settings);
+  void _editDns(int index) async {
+    final result = await _showEditDnsDialog(_dnsList[index], index);
+    if (result != null) {
+      if (result.isEmpty) {
+        // 删除
+        setState(() {
+          _dnsList.removeAt(index);
+        });
+      } else {
+        // 更新
+        setState(() {
+          _dnsList[index] = result;
+        });
+      }
+      await _saveDnsSettings();
     }
+  }
+
+  Future<String?> _showEditDnsDialog(String? initialValue, int index) async {
+    final controller = TextEditingController(text: initialValue);
+    final formKey = GlobalKey<FormState>();
+    
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(index == -1 ? t('add_dns') : t('dns_servers')),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: t('dns_servers'),
+              hintText: t('dns_hint'),
+              border: const OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return t('dns_server_required');
+              }
+              if (!_isValidIpAddress(value.trim())) {
+                return t('valid_ip_required');
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          if (index != -1)
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(''),
+              child: Text(
+                t('delete'),
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null),
+            child: Text(t('cancel')),
+          ),
+          TextButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(context).pop(controller.text.trim());
+              }
+            },
+            child: Text(t('save')),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _isValidIpAddress(String ip) {
@@ -81,92 +143,304 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return true;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Settings"),
-        actions: [
-          TextButton(
-            onPressed: _saveSettings,
-            child: const Text(
-              "Save",
-              style: TextStyle(color: Colors.white),
+  String _getLanguageName(String lang) {
+    switch (lang) {
+      case 'zh':
+        return t('language_zh');
+      case 'en':
+      default:
+        return t('language_en');
+    }
+  }
+
+  String _getThemeName(String theme) {
+    if (theme == 'system') {
+      // 如果是跟随系统，显示当前实际使用的主题
+      final brightness = Theme.of(context).brightness;
+      return '${t('theme_system')} (${brightness == Brightness.dark ? t('theme_dark') : t('theme_light')})';
+    }
+    
+    switch (theme) {
+      case 'light':
+        return t('theme_light');
+      case 'dark':
+        return t('theme_dark');
+      default:
+        return t('theme_system');
+    }
+  }
+
+  void _showLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t('language_settings')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLanguageOption('zh', t('language_zh')),
+            _buildLanguageOption('en', t('language_en')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showThemeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t('theme_settings')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildThemeOption('system', t('theme_system'), Icons.brightness_auto),
+            _buildThemeOption('light', t('theme_light'), Icons.light_mode),
+            _buildThemeOption('dark', t('theme_dark'), Icons.dark_mode),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption(String value, String label) {
+    final isSelected = _selectedLanguage == value;
+    return ListTile(
+      leading: Radio<String>(
+        value: value,
+        groupValue: _selectedLanguage,
+        onChanged: (val) async {
+          setState(() {
+            _selectedLanguage = val!;
+          });
+          Navigator.of(context).pop();
+          await methods.setAppLanguage(_selectedLanguage);
+          await initializeLocale(_selectedLanguage);
+        },
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      onTap: () async {
+        setState(() {
+          _selectedLanguage = value;
+        });
+        Navigator.of(context).pop();
+        // 自动保存
+        await methods.setAppLanguage(_selectedLanguage);
+        await initializeLocale(_selectedLanguage);
+      },
+    );
+  }
+
+  Widget _buildThemeOption(String value, String label, IconData icon) {
+    final isSelected = _selectedTheme == value;
+    return ListTile(
+      leading: Radio<String>(
+        value: value,
+        groupValue: _selectedTheme,
+        onChanged: (val) async {
+          setState(() {
+            _selectedTheme = val!;
+          });
+          Navigator.of(context).pop();
+          
+          // 自动保存
+          await setThemeMode(_selectedTheme);
+          final settings = Settings(
+            dnsList: _dnsList,
+            themeMode: _selectedTheme,
+          );
+          await methods.saveSettings(settings);
+        },
+      ),
+      title: Row(
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
+      onTap: () async {
+        setState(() {
+          _selectedTheme = value;
+        });
+        Navigator.of(context).pop();
+        
+        // 自动保存
+        await setThemeMode(_selectedTheme);
+        final settings = Settings(
+          dnsList: _dnsList,
+          themeMode: _selectedTheme,
+        );
+        await methods.saveSettings(settings);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Watch((context) => _build(context));
+  }
+
+  Widget _build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.settings, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text(t('settings_title')),
+          ],
+        ),
+        // 移除渐变色，使用主题定义的backgroundColor
+      ),
+      body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Appearance Section
+              Text(
+                t('appearance'),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Language Settings
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.language,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      title: Text(
+                        t('language'),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(_getLanguageName(_selectedLanguage)),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showLanguageDialog(),
+                    ),
+                    Divider(height: 1, color: Colors.grey.shade300),
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.palette,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      title: Text(
+                        t('theme'),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(_getThemeName(_selectedTheme)),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showThemeDialog(),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
               // DNS List section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "DNS Servers",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    t('dns_servers'),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     onPressed: _addDns,
                     icon: const Icon(Icons.add),
-                    tooltip: "Add DNS Server",
+                    tooltip: t('add_dns_server'),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
-                "Configure DNS servers for network resolution",
-                style: TextStyle(color: Colors.grey),
+              Text(
+                t('configure_dns'),
+                style: const TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 16),
               
               // DNS list
-              ...List.generate(_dnsControllers.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _dnsControllers[index],
-                          decoration: InputDecoration(
-                            labelText: "DNS Server ${index + 1}",
-                            hintText: "e.g., 8.8.8.8",
-                            border: const OutlineInputBorder(),
-                            prefixIcon: const Icon(Icons.dns),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return "DNS server address is required";
-                            }
-                            if (!_isValidIpAddress(value.trim())) {
-                              return "Please enter a valid IP address";
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      if (_dnsControllers.length > 1)
-                        IconButton(
-                          onPressed: () => _removeDns(index),
-                          icon: const Icon(Icons.remove_circle_outline),
-                          tooltip: "Remove DNS Server",
-                        ),
-                    ],
+              if (_dnsList.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Text(
+                      t('no_dns'),
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
                   ),
-                );
-              }),
+                )
+              else
+                ...List.generate(_dnsList.length, (index) {
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8.0),
+                    child: ListTile(
+                      leading: Icon(Icons.dns, color: colorScheme.primary),
+                      title: Text(_dnsList[index]),
+                      subtitle: Text(t('dns_server_number').replaceAll('{number}', '${index + 1}')),
+                      trailing: Icon(Icons.edit, color: colorScheme.primary),
+                      onTap: () => _editDns(index),
+                    ),
+                  );
+                }),
               
               const SizedBox(height: 24),
               
               // Info card
-              Card(
-                color: Colors.blue.shade50.withAlpha(0x30),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50.withAlpha(0x30),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.blue.shade200.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -177,7 +451,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Icon(Icons.info, color: Colors.blue.shade700),
                           const SizedBox(width: 8),
                           Text(
-                            "DNS Information",
+                            t('dns_info_title'),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blue.shade700,
@@ -186,11 +460,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        "• DNS servers are used to resolve domain names to IP addresses\n"
-                        "• Common public DNS servers include Google (8.8.8.8) and Cloudflare (1.1.1.1)\n"
-                        "• You can add multiple DNS servers for redundancy",
-                        style: TextStyle(fontSize: 14),
+                      Text(
+                        t('dns_info_desc'),
+                        style: const TextStyle(fontSize: 13),
                       ),
                     ],
                   ),
@@ -198,25 +470,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               
               const SizedBox(height: 32),
-              
-              // Save button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveSettings,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    "Save Settings",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
+

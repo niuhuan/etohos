@@ -2,11 +2,11 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "模块描述"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "描述"
     },
     {
       "name": "EntryAbility_label",
@@ -14,7 +14,39 @@
     },
     {
       "name": "location_reason",
-      "value": "keep task in background"
+      "value": "保持后台任务运行"
+    },
+    {
+      "name": "vpn_authorized",
+      "value": "VPN已授权"
+    },
+    {
+      "name": "vpn_not_authorized",
+      "value": "VPN未授权，无法启动实例"
+    },
+    {
+      "name": "emulator_detected",
+      "value": "检测到模拟器环境"
+    },
+    {
+      "name": "connection_started",
+      "value": "已开始连接"
+    },
+    {
+      "name": "connection_failed",
+      "value": "连接失败"
+    },
+    {
+      "name": "config_error",
+      "value": "配置错误"
+    },
+    {
+      "name": "language_changed",
+      "value": "语言已切换"
+    },
+    {
+      "name": "language_change_failed",
+      "value": "语言切换失败"
     }
   ]
 }

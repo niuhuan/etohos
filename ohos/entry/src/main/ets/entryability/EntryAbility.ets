@@ -2,7 +2,7 @@ import { Any, FlutterAbility, FlutterEngine, MethodCall, MethodChannel, MethodRe
 import { GeneratedPluginRegistrant } from '../plugins/GeneratedPluginRegistrant';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { vpnExtension } from '@kit.NetworkKit';
-import { Want, WantAgent, wantAgent } from '@kit.AbilityKit';
+import { Want, WantAgent, wantAgent, AbilityConstant } from '@kit.AbilityKit';
 import { collectNetworkInfos, runNetworkInstance, setTunFd, stopNetworkInstance } from 'easyiter-ohrs';
 import { backgroundTaskManager } from '@kit.BackgroundTasksKit';
 import { BusinessError, deviceInfo } from "@kit.BasicServicesKit";
@@ -11,6 +11,7 @@ import { JSON, util } from '@kit.ArkTS';
 import { NetworkInstanceRunningInfo } from './PeerInfo';
 import { resourceManager } from '@kit.LocalizationKit'
 import { abilityAccessCtrl, bundleManager, common, Permissions } from '@kit.AbilityKit';
+import { i18n } from '@kit.LocalizationKit';
 
 let vpnWant: Want = {
   deviceId: "",
@@ -43,6 +44,14 @@ interface NetworkData {
 }
 
 export default class EntryAbility extends FlutterAbility {
+  private resourceMgr: resourceManager.ResourceManager | null = null;
+
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
+    super.onCreate(want, launchParam);
+    // 初始化资源管理器
+    this.resourceMgr = this.context.resourceManager;
+  }
+
   configureFlutterEngine(flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
     new MethodChannel(flutterEngine.dartExecutor.getBinaryMessenger(), "methods")
@@ -57,6 +66,24 @@ export default class EntryAbility extends FlutterAbility {
       switch (call.method) {
         case 'data_dir':
           result.success(this.context.filesDir);
+          break;
+        case 'set_app_language':
+          let language = call.args as string;
+          if (language == 'zh') {
+            language = "zh-Hans";
+          } else if (language == 'en') {
+            language = "en-US";
+          }
+          i18n.System.setAppPreferredLanguage(language);
+          result.success("");
+          break;
+        case 'get_app_language':
+          // 如果currentLanguage为空，返回默认中文
+          let appPreferredLanguage: string = i18n.System.getAppPreferredLanguage(); // 获取应用偏好语言
+          if (appPreferredLanguage.indexOf("-") > 0) {
+            appPreferredLanguage = appPreferredLanguage.substring(0, appPreferredLanguage.indexOf("-"));
+          }
+          result.success(appPreferredLanguage || 'zh');
           break;
         case 'prepare_vpn':
           await this.prepare_vpn();
@@ -94,7 +121,8 @@ export default class EntryAbility extends FlutterAbility {
   async prepare_vpn() {
     if (deviceInfo.productModel === "emulator") {
       promptAction.showToast({
-        message: `emulator`
+        message: $r('app.string.emulator_detected'),
+        duration: 2000
       });
       return;
     }
@@ -102,12 +130,11 @@ export default class EntryAbility extends FlutterAbility {
       try {
         await vpnExtension.startVpnExtensionAbility(vpnWant);
         promptAction.showToast({
-          message: `VPN authorized`
+          message: $r('app.string.vpn_authorized'),
+          duration: 2000
         });
       } catch (e) {
-        // promptAction.showToast({
-        //  message: `VPN permission not authorized, instance cannot be started`
-        // });
+        // this.showToast('vpn_not_authorized');
         // return;
       }
     }
@@ -116,9 +143,9 @@ export default class EntryAbility extends FlutterAbility {
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
     //if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
-      await this.checkPermissionGrant('ohos.permission.LOCATION')
-      await this.checkPermissionGrant('ohos.permission.LOCATION_IN_BACKGROUND')
-      await this.checkPermissionGrant('ohos.permission.APPROXIMATELY_LOCATION')
+    await this.checkPermissionGrant('ohos.permission.LOCATION')
+    await this.checkPermissionGrant('ohos.permission.LOCATION_IN_BACKGROUND')
+    await this.checkPermissionGrant('ohos.permission.APPROXIMATELY_LOCATION')
     //}
   }
 
@@ -251,7 +278,7 @@ mtu = 1500
     //if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType) {
     //  bgMod = ["taskKeeping"];
     //} else {
-      bgMod = ["location"];
+    bgMod = ["location"];
     //}
 
     backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
@@ -267,11 +294,9 @@ mtu = 1500
           hilog.warn(0, 'loop', '%{public}s', "json : " + JSON.stringify(json));
           if (json) {
             let infos = json as NetworkInstanceRunningInfo;
-            hilog.warn(0, 'loop', '%{public}s', "infos2 : " + JSON.stringify(infos));1
-            
+            hilog.warn(0, 'loop', '%{public}s', "infos2 : " + JSON.stringify(infos));
             // Record network status data
             this.recordNetworkStatus(infos);
-            
             if (needSetTun && infos.my_node_info.virtual_ipv4 != null && infos.peers.length > 0) {
               needSetTun = false;
               let vpnConfig: vpnExtension.VpnConfig = {
@@ -303,10 +328,11 @@ mtu = 1500
     }).catch((e: Any) => {
       isConnected = false;
       stopNetworkInstance([running_inst]);
+      hilog.error(0, 'connect_vpn', 'Connection error: %{public}s', JSON.stringify(e));
       promptAction.showToast({
-        message: `${JSON.stringify(e)}`,
+        message: $r('app.string.connection_failed'),
         duration: 2000
-      })
+      });
     });
   }
 
@@ -323,7 +349,7 @@ mtu = 1500
       // Calculate total traffic
       let totalRx = 0;
       let totalTx = 0;
-      
+
       infos.peer_route_pairs.forEach((peerRoute) => {
         if (peerRoute.peer) {
           peerRoute.peer.conns.forEach((conn) => {
@@ -332,19 +358,19 @@ mtu = 1500
           });
         }
       });
-      
+
       // Calculate delta (bytes per second)
       let rxDelta = totalRx - lastTotalRx;
       let txDelta = totalTx - lastTotalTx;
-      
+
       // Get IP and hostname
       let ip = "";
       let hostname = infos.my_node_info.hostname ?? "";
-      
+
       if (infos.my_node_info.virtual_ipv4) {
         ip = convertAddrToIp(infos.my_node_info.virtual_ipv4.address.addr);
       }
-      
+
       // Only record if we have previous data (not the first record)
       if (lastTotalRx > 0 && lastTotalTx > 0) {
         let networkData: NetworkData = {
@@ -354,23 +380,24 @@ mtu = 1500
           ip: ip,
           hostname: hostname
         };
-        
+
         networkHistory.push(networkData);
-        
+
         // Keep only last 20 records
         if (networkHistory.length > 20) {
           networkHistory.shift();
         }
       }
-      
+
       // Update last totals
       lastTotalRx = totalRx;
       lastTotalTx = totalTx;
-      
+
     } catch (e) {
       hilog.error(0, 'recordNetworkStatus', 'Error recording network status: %{public}s', JSON.stringify(e));
     }
   }
+
 }
 
 export function convertAddrToIp(addr: number): string {

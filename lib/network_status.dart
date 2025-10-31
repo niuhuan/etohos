@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:etohos/methods.dart';
 import 'package:etohos/utils/logger.dart';
+import 'package:etohos/l10n/l10n_extensions.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 class NetworkStatus extends StatefulWidget {
   const NetworkStatus({super.key});
@@ -114,32 +116,67 @@ class _NetworkStatusState extends State<NetworkStatus> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Watch((context) => _build(context));
+  }
+
+  Widget _build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
       margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题
-            Row(
-              children: [
-                const Icon(Icons.network_check, color: Colors.blue),
-                const SizedBox(width: 8),
-                const Text(
-                  'Network Status',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer.withOpacity(0.3),
+            colorScheme.secondaryContainer.withOpacity(0.3),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withOpacity(0.1)
+              : Colors.black.withOpacity(0.06),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 标题 - 现代化设计
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.speed, color: colorScheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      t('network_status'),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
 
             // IP信息
             if (_currentIp.isNotEmpty) ...[
-              _buildInfoRow('IP Address', _currentIp),
+              _buildInfoRow(t('ip_address'), _currentIp),
               const SizedBox(height: 8),
             ],
             // if (_hostname.isNotEmpty) ...[
@@ -153,7 +190,7 @@ class _NetworkStatusState extends State<NetworkStatus> {
                 children: [
                   Expanded(
                     child: _buildSpeedCard(
-                      'RX',
+                      t('rx_speed'),
                       _formatBytes(_currentRxSpeed) + '/s',
                       Colors.green,
                       Icons.download,
@@ -162,7 +199,7 @@ class _NetworkStatusState extends State<NetworkStatus> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _buildSpeedCard(
-                      'TX',
+                      t('tx_speed'),
                       _formatBytes(_currentTxSpeed) + '/s',
                       Colors.orange,
                       Icons.upload,
@@ -188,63 +225,116 @@ class _NetworkStatusState extends State<NetworkStatus> {
                 child: _buildNetworkChart(),
               ),
             ] else ...[
-              const Center(
+              Center(
                 child: Text(
-                  'No network data available',
-                  style: TextStyle(color: Colors.grey),
+                  t('no_network_data'),
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ),
             ],
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildInfoRow(String label, String value) {
-    return Row(
-      children: [
-        Text(
-          '$label: ',
-          style: const TextStyle(fontWeight: FontWeight.w500),
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.2),
         ),
-        Text(
-          value,
-          style: const TextStyle(color: Colors.blue),
-        ),
-      ],
+      ),
+      child: Row(
+        children: [
+          Icon(
+            label.contains('IP') ? Icons.language : Icons.devices,
+            size: 18,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildSpeedCard(
       String title, String value, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.15),
+            color.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            "$title:  ",
-            style: TextStyle(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.w500,
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
+            child: Icon(icon, color: color, size: 16),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+          const SizedBox(width: 12),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: color.withOpacity(0.8),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -317,16 +407,20 @@ class _NetworkStatusState extends State<NetworkStatus> {
               showTitles: true,
               interval: gridInterval,
               getTitlesWidget: (value, meta) {
-                return Text(
-                  _formatBytes(value.toInt()),
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                return Padding(
+                  padding: const EdgeInsets.only(right: 4.0),
+                  child: Text(
+                    _formatYAxisLabel(value, adjustedMaxValue),
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.right,
                   ),
                 );
               },
-              reservedSize: 40,
+              reservedSize: 25,
             ),
           ),
         ),
@@ -384,6 +478,31 @@ class _NetworkStatusState extends State<NetworkStatus> {
     if (bytes < 1024 * 1024 * 1024)
       return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
+
+  // Y轴标签格式化：在0位置显示单位，其他位置只显示整数
+  String _formatYAxisLabel(double value, double maxValue) {
+    if (value == 0) {
+      // 在0的位置显示单位
+      if (maxValue < 1024) {
+        return 'B';
+      } else if (maxValue < 1024 * 1024) {
+        return 'KB';
+      } else {
+        return 'MB';
+      }
+    } else {
+      // 其他位置只显示整数
+      int displayValue;
+      if (maxValue < 1024) {
+        displayValue = value.toInt();
+      } else if (maxValue < 1024 * 1024) {
+        displayValue = (value / 1024).toInt();
+      } else {
+        displayValue = (value / (1024 * 1024)).toInt();
+      }
+      return displayValue.toString();
+    }
   }
 }
 

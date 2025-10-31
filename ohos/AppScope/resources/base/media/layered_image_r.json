@@ -2,6 +2,9 @@
   "layered-image":
   {
     "background" : "$media:background",
-    "foreground" : "$media:EasyR"
+    "foreground" : "$media:EasyR",
+    "mask" : {
+      "shape" : "circle"
+    }
   }
 }

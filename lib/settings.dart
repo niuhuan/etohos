@@ -1,14 +1,17 @@
 class Settings {
   final List<String> dnsList;
+  final String themeMode; // 'system', 'light', 'dark'
 
   const Settings({
     required this.dnsList,
+    this.themeMode = 'system',
   });
 
   // Create object from JSON
   factory Settings.fromJson(Map<String, dynamic> json) {
     return Settings(
       dnsList: List<String>.from(json['dnsList'] as List),
+      themeMode: (json['themeMode'] ?? 'system') as String,
     );
   }
 
@@ -16,15 +19,19 @@ class Settings {
   Map<String, dynamic> toJson() {
     return {
       'dnsList': dnsList,
+      'themeMode': themeMode,
     };
   }
 
   // Copy object and modify some fields
   Settings copyWith({
     List<String>? dnsList,
+    String? language,
+    String? themeMode,
   }) {
     return Settings(
       dnsList: dnsList ?? this.dnsList,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -32,17 +39,18 @@ class Settings {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is Settings &&
-        _listEquals(other.dnsList, dnsList);
+        _listEquals(other.dnsList, dnsList) &&
+        other.themeMode == themeMode;
   }
 
   @override
   int get hashCode {
-    return dnsList.hashCode;
+    return Object.hash(dnsList.hashCode, themeMode.hashCode);
   }
 
   @override
   String toString() {
-    return 'Settings(dnsList: $dnsList)';
+    return 'Settings(dnsList: $dnsList, themeMode: $themeMode)';
   }
 
   // Helper method: compare if two lists are equal

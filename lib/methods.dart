@@ -30,6 +30,26 @@ class Methods {
     return await _channel.invokeMethod("data_dir");
   }
 
+  Future<String> setAppLanguage(String language) async {
+    try {
+      final result = await _channel.invokeMethod("set_app_language", language);
+      return result ?? "";
+    } catch (e) {
+      AppLogger.error('Error setting app language', error: e);
+      return "";
+    }
+  }
+
+  Future<String> getAppLanguage() async {
+    try {
+      final result = await _channel.invokeMethod("get_app_language");
+      return result ?? 'auto';
+    } catch (e) {
+      AppLogger.error('Error getting app language', error: e);
+      return 'auto';
+    }
+  }
+
   // File operations for configs
   Future<String> _getConfigFilePath() async {
     final directory = await dataDir();

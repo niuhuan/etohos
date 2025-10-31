@@ -1,5 +1,7 @@
 import 'package:etohos/et_config.dart';
+import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class EditScreen extends StatefulWidget {
@@ -148,33 +150,82 @@ class _EditScreenState extends State<EditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Watch((context) => _build(context));
+  }
+
+  Widget _build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.source == null ? "Add Configuration" : "Edit Configuration"),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                widget.source == null ? Icons.add_box : Icons.edit,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(widget.source == null ? t('add_configuration') : t('edit_configuration')),
+          ],
+        ),
+        // 移除渐变色，使用主题定义的backgroundColor
         actions: [
-          TextButton(
-            onPressed: _saveConfig,
-            child: const Text(
-              "Save",
-              style: TextStyle(color: Colors.white),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TextButton.icon(
+              onPressed: _saveConfig,
+              icon: const Icon(Icons.check, color: Colors.white, size: 18),
+              label: Text(
+                t('save'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.surface,
+              colorScheme.primaryContainer.withOpacity(0.1),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+              // 基本信息分组
+              _buildSectionHeader(context, t('basic_info'), Icons.info_outline),
+              const SizedBox(height: 12),
+              
               // Instance ID (read-only)
               TextFormField(
                 controller: _instanceIdController,
-                decoration: const InputDecoration(
-                  labelText: "Instance ID (UUID)",
-                  hintText: "Auto-generated UUID",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t('instance_id'),
+                  hintText: t('auto_generated_uuid'),
+                  border: const OutlineInputBorder(),
                 ),
                 readOnly: true,
                 style: TextStyle(color: Colors.grey[600]),
@@ -184,14 +235,14 @@ class _EditScreenState extends State<EditScreen> {
               // Instance Name
               TextFormField(
                 controller: _instanceNameController,
-                decoration: const InputDecoration(
-                  labelText: "Instance Name",
-                  hintText: "Enter instance name",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t('instance_name'),
+                  hintText: t('enter_instance_name'),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return "Instance name is required";
+                    return t('instance_name_required');
                   }
                   return null;
                 },
@@ -201,14 +252,14 @@ class _EditScreenState extends State<EditScreen> {
               // Hostname
               TextFormField(
                 controller: _hostnameController,
-                decoration: const InputDecoration(
-                  labelText: "Hostname",
-                  hintText: "Enter hostname",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t('hostname'),
+                  hintText: t('enter_hostname'),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return "Hostname is required";
+                    return t('hostname_required');
                   }
                   return null;
                 },
@@ -218,14 +269,14 @@ class _EditScreenState extends State<EditScreen> {
               // Network Name
               TextFormField(
                 controller: _networkNameController,
-                decoration: const InputDecoration(
-                  labelText: "Network Name",
-                  hintText: "Enter network name",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t('network_name'),
+                  hintText: t('enter_network_name'),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return "Network name is required";
+                    return t('network_name_required');
                   }
                   return null;
                 },
@@ -235,10 +286,10 @@ class _EditScreenState extends State<EditScreen> {
               // Network Secret
               TextFormField(
                 controller: _networkSecretController,
-                decoration: const InputDecoration(
-                  labelText: "Network Secret",
-                  hintText: "Enter network secret",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t('network_secret'),
+                  hintText: t('enter_network_secret'),
+                  border: const OutlineInputBorder(),
                 ),
                 obscureText: true,
                 // Network secret is optional, no validation needed
@@ -246,19 +297,13 @@ class _EditScreenState extends State<EditScreen> {
               const SizedBox(height: 24),
               
               // Peers section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Peers",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    onPressed: _addPeer,
-                    icon: const Icon(Icons.add),
-                    tooltip: "Add Peer",
-                  ),
-                ],
+              _buildSectionHeader(context, t('peers'), Icons.group, 
+                action: IconButton(
+                  onPressed: _addPeer,
+                  icon: const Icon(Icons.add_circle_outline),
+                  tooltip: t('add_peer'),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 8),
               
@@ -272,8 +317,8 @@ class _EditScreenState extends State<EditScreen> {
                         child: TextFormField(
                           controller: _peerControllers[index],
                           decoration: InputDecoration(
-                            labelText: "Peer ${index + 1}",
-                            hintText: "Enter peer address",
+                            labelText: t('peer_number').replaceAll('{number}', '${index + 1}'),
+                            hintText: t('peer_url_hint'),
                             border: const OutlineInputBorder(),
                           ),
                           validator: (value) {
@@ -281,7 +326,7 @@ class _EditScreenState extends State<EditScreen> {
                               return null; // Empty is allowed
                             }
                             if (!_isValidPeerUrl(value)) {
-                              return "Must start with tcp://, udp://, wg://, ws://, or wss://";
+                              return t('invalid_peer_url');
                             }
                             return null;
                           },
@@ -291,7 +336,7 @@ class _EditScreenState extends State<EditScreen> {
                         IconButton(
                           onPressed: () => _removePeer(index),
                           icon: const Icon(Icons.remove_circle_outline),
-                          tooltip: "Remove Peer",
+                          tooltip: t('delete'),
                         ),
                     ],
                   ),
@@ -302,17 +347,17 @@ class _EditScreenState extends State<EditScreen> {
               // IPv4 Address
               TextFormField(
                 controller: _ipv4Controller,
-                decoration: const InputDecoration(
-                  labelText: "IPv4 Address",
-                  hintText: "Enter IPv4 address (optional)",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t('ipv4_address'),
+                  hintText: t('enter_ipv4_optional'),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return null; // Empty is allowed
                   }
                   if (!_isValidIPv4(value)) {
-                    return "Please enter a valid IPv4 address (e.g., 192.168.1.1)";
+                    return t('invalid_ipv4');
                   }
                   return null;
                 },
@@ -320,145 +365,209 @@ class _EditScreenState extends State<EditScreen> {
               const SizedBox(height: 24),
               
               // Advanced Settings section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Advanced Settings",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+              _buildSectionHeader(context, t('advanced_settings'), Icons.tune),
               const SizedBox(height: 8),
 
               // DHCP
-              SwitchListTile(
-                title: const Text("DHCP"),
-                subtitle: const Text("Enable DHCP for automatic IP assignment"),
+              _buildModernSwitch(
+                context,
+                title: t('dhcp'),
+                subtitle: t('dhcp_desc'),
                 value: _dhcp,
-                onChanged: (value) {
-                  setState(() {
-                    _dhcp = value;
-                  });
-                },
+                icon: Icons.router,
+                onChanged: (value) => setState(() => _dhcp = value),
               ),
               
               // Enable KCP Proxy
-              SwitchListTile(
-                title: const Text("Enable KCP Proxy"),
-                subtitle: const Text("Use KCP protocol for better performance"),
+              _buildModernSwitch(
+                context,
+                title: t('enable_kcp_proxy'),
+                subtitle: t('enable_kcp_proxy_desc'),
                 value: _enableKcpProxy,
-                onChanged: (value) {
-                  setState(() {
-                    _enableKcpProxy = value;
-                  });
-                },
+                icon: Icons.speed,
+                onChanged: (value) => setState(() => _enableKcpProxy = value),
               ),
               
               // Disable KCP Input
-              SwitchListTile(
-                title: const Text("Disable KCP Input"),
-                subtitle: const Text("Disable KCP input processing"),
+              _buildModernSwitch(
+                context,
+                title: t('disable_kcp_input'),
+                subtitle: t('disable_kcp_input_desc'),
                 value: _disableKcpInput,
-                onChanged: (value) {
-                  setState(() {
-                    _disableKcpInput = value;
-                  });
-                },
+                icon: Icons.block,
+                onChanged: (value) => setState(() => _disableKcpInput = value),
               ),
               
               // Enable QUIC Proxy
-              SwitchListTile(
-                title: const Text("Enable QUIC Proxy"),
-                subtitle: const Text("Use QUIC protocol for better performance"),
+              _buildModernSwitch(
+                context,
+                title: t('enable_quic_proxy'),
+                subtitle: t('enable_quic_proxy_desc'),
                 value: _enableQuicProxy,
-                onChanged: (value) {
-                  setState(() {
-                    _enableQuicProxy = value;
-                  });
-                },
+                icon: Icons.flash_on,
+                onChanged: (value) => setState(() => _enableQuicProxy = value),
               ),
               
               // Disable QUIC Input
-              SwitchListTile(
-                title: const Text("Disable QUIC Input"),
-                subtitle: const Text("Disable QUIC input processing"),
+              _buildModernSwitch(
+                context,
+                title: t('disable_quic_input'),
+                subtitle: t('disable_quic_input_desc'),
                 value: _disableQuicInput,
-                onChanged: (value) {
-                  setState(() {
-                    _disableQuicInput = value;
-                  });
-                },
+                icon: Icons.flash_off,
+                onChanged: (value) => setState(() => _disableQuicInput = value),
               ),
               
               // Private Mode
-              SwitchListTile(
-                title: const Text("Private Mode"),
-                subtitle: const Text("Enable private mode for enhanced security"),
+              _buildModernSwitch(
+                context,
+                title: t('private_mode'),
+                subtitle: t('private_mode_desc'),
                 value: _privateMode,
-                onChanged: (value) {
-                  setState(() {
-                    _privateMode = value;
-                  });
-                },
+                icon: Icons.lock,
+                onChanged: (value) => setState(() => _privateMode = value),
               ),
               
               // Latency First
-              SwitchListTile(
-                title: const Text("Latency First"),
-                subtitle: const Text("Prioritize low latency over throughput"),
+              _buildModernSwitch(
+                context,
+                title: t('latency_first'),
+                subtitle: t('latency_first_desc'),
                 value: _latencyFirst,
-                onChanged: (value) {
-                  setState(() {
-                    _latencyFirst = value;
-                  });
-                },
+                icon: Icons.timer,
+                onChanged: (value) => setState(() => _latencyFirst = value),
               ),
               
               // Use Smoltcp
-              SwitchListTile(
-                title: const Text("Use Smoltcp"),
-                subtitle: const Text("Use smoltcp user-space stack"),
+              _buildModernSwitch(
+                context,
+                title: t('use_smoltcp'),
+                subtitle: t('use_smoltcp_desc'),
                 value: _useSmoltcp,
-                onChanged: (value) {
-                  setState(() {
-                    _useSmoltcp = value;
-                  });
-                },
+                icon: Icons.memory,
+                onChanged: (value) => setState(() => _useSmoltcp = value),
               ),
               
               // No TUN
-              SwitchListTile(
-                title: const Text("No TUN"),
-                subtitle: const Text("Disable TUN interface mode"),
+              _buildModernSwitch(
+                context,
+                title: t('no_tun'),
+                subtitle: t('no_tun_desc'),
                 value: _noTun,
-                onChanged: (value) {
-                  setState(() {
-                    _noTun = value;
-                  });
-                },
+                icon: Icons.network_check,
+                onChanged: (value) => setState(() => _noTun = value),
               ),
               
-              const SizedBox(height: 32),
-              
-              // Save button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveConfig,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    "Save Configuration",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon, {Widget? action}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer.withOpacity(0.5),
+            colorScheme.secondaryContainer.withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.primary.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: colorScheme.primary, size: 24),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
+          ),
+          const Spacer(),
+          if (action != null) action,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernSwitch(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required bool value,
+    required IconData icon,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: value 
+            ? colorScheme.primary.withOpacity(0.5)
+            : colorScheme.outline.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          if (value)
+            BoxShadow(
+              color: colorScheme.primary.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+        ],
+      ),
+      child: SwitchListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: value 
+              ? colorScheme.primary.withOpacity(0.15)
+              : colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: value ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
+        value: value,
+        onChanged: onChanged,
+      ),
     );
   }
 }
+

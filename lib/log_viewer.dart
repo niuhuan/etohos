@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:etohos/utils/logger.dart';
+import 'package:etohos/l10n/l10n_extensions.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 class LogViewer extends StatefulWidget {
   const LogViewer({super.key});
@@ -47,9 +49,9 @@ class _LogViewerState extends State<LogViewer> {
     
     // 显示清除成功的提示
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Logs cleared successfully'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(t('logs_cleared')),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -58,44 +60,101 @@ class _LogViewerState extends State<LogViewer> {
     final logText = AppLogger.exportLogs();
     Clipboard.setData(ClipboardData(text: logText));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logs copied to clipboard')),
+      SnackBar(content: Text(t('logs_copied'))),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    return Watch((context) => _build(context));
+  }
+
+  Widget _build(BuildContext context) {
     final filteredLogs = _filteredLogs;
     final stats = AppLogger.getLogStats();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Log Viewer'),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.list_alt, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text(t('log_viewer')),
+          ],
+        ),
+        // 移除渐变色，使用主题定义的backgroundColor
         actions: [
-          IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: _clearLogs,
-            tooltip: 'Clear logs',
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.delete_sweep),
+              onPressed: _clearLogs,
+              tooltip: t('clear_logs'),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.copy),
-            onPressed: _exportLogs,
-            tooltip: 'Copy logs',
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.copy_all),
+              onPressed: _exportLogs,
+              tooltip: t('copy_logs'),
+            ),
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Column(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.surface,
+              colorScheme.primaryContainer.withOpacity(0.05),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Column(
         children: [
-          // 搜索栏
+          // 搜索栏 - 现代化设计
           Container(
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search logs...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: t('search_logs'),
+                hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
+                prefixIcon: Icon(Icons.search, color: colorScheme.primary),
                 suffixIcon: _searchText.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: Icon(Icons.clear, color: colorScheme.error),
                         onPressed: () {
                           _searchController.clear();
                           setState(() {
@@ -105,8 +164,12 @@ class _LogViewerState extends State<LogViewer> {
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
                 ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               onChanged: (value) {
                 setState(() {
@@ -118,110 +181,308 @@ class _LogViewerState extends State<LogViewer> {
           
           // 日志级别过滤器和统计
           Container(
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withOpacity(0.08),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 过滤器标题
                 Row(
                   children: [
-                    const Text('Log Level: '),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildLogLevelChip('All', Colors.grey, null),
-                            _buildLogLevelChip('Debug', Colors.blue, LogLevel.debug),
-                            _buildLogLevelChip('Info', Colors.green, LogLevel.info),
-                            _buildLogLevelChip('Warning', Colors.orange, LogLevel.warning),
-                            _buildLogLevelChip('Error', Colors.red, LogLevel.error),
-                            _buildLogLevelChip('Fatal', Colors.purple, LogLevel.fatal),
-                          ],
-                        ),
+                    Icon(Icons.filter_list, size: 18, color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      t('log_filter'),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // 级别筛选
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildLogLevelChip(t('log_level_all'), Colors.grey, null),
+                      _buildLogLevelChip(t('log_level_debug'), Colors.blue, LogLevel.debug),
+                      _buildLogLevelChip(t('log_level_info'), Colors.green, LogLevel.info),
+                      _buildLogLevelChip(t('log_level_warning'), Colors.orange, LogLevel.warning),
+                      _buildLogLevelChip(t('log_level_error'), Colors.red, LogLevel.error),
+                      _buildLogLevelChip(t('log_level_fatal'), Colors.purple, LogLevel.fatal),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                // 统计信息 - 美化显示
+                Row(
+                  children: [
+                    Icon(Icons.bar_chart, size: 18, color: colorScheme.secondary),
+                    const SizedBox(width: 8),
+                    Text(
+                      t('statistics'),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: colorScheme.secondary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                // 统计信息 - 折行显示
                 Wrap(
-                  spacing: 16,
+                  spacing: 12,
                   runSpacing: 8,
                   children: [
-                    Text('Total: ${AppLogger.getLogs().length}'),
-                    Text('Filtered: ${filteredLogs.length}'),
-                    Text('Debug: ${stats[LogLevel.debug]}'),
-                    Text('Info: ${stats[LogLevel.info]}'),
-                    Text('Warn: ${stats[LogLevel.warning]}'),
-                    Text('Error: ${stats[LogLevel.error]}'),
-                    Text('Fatal: ${stats[LogLevel.fatal]}'),
+                    _buildStatChip(t('total'), AppLogger.getLogs().length, Colors.grey),
+                    _buildStatChip(t('filtered'), filteredLogs.length, colorScheme.primary),
+                    _buildStatChip(t('log_level_debug'), stats[LogLevel.debug] ?? 0, Colors.blue),
+                    _buildStatChip(t('log_level_info'), stats[LogLevel.info] ?? 0, Colors.green),
+                    _buildStatChip(t('log_level_warning'), stats[LogLevel.warning] ?? 0, Colors.orange),
+                    _buildStatChip(t('log_level_error'), stats[LogLevel.error] ?? 0, Colors.red),
+                    _buildStatChip(t('log_level_fatal'), stats[LogLevel.fatal] ?? 0, Colors.purple),
                   ],
                 ),
               ],
             ),
           ),
-          const Divider(),
           
           // 日志列表
           Expanded(
             child: filteredLogs.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No logs available',
-                      style: TextStyle(color: Colors.grey),
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.inbox_outlined,
+                          size: 64,
+                          color: colorScheme.onSurface.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          t('no_logs'),
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.builder(
                     controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: filteredLogs.length,
                     itemBuilder: (context, index) {
                       final log = filteredLogs[index];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getLogColor(log.level).withOpacity(0.1),
-                          border: Border(
-                            left: BorderSide(
-                              color: _getLogColor(log.level),
-                              width: 3,
-                            ),
-                          ),
-                        ),
-                        child: SelectableText(
-                          log.toString(),
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                            color: _getLogColor(log.level),
-                          ),
-                        ),
-                      );
+                      return _buildLogItem(log, colorScheme);
                     },
                   ),
           ),
-          
-          // 底部操作栏
-          Container(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Showing ${filteredLogs.length} of ${AppLogger.getLogs().length} logs',
-                    style: const TextStyle(fontSize: 12),
-                  ),
+        ],
+      ),
+      ),
+    );
+  }
+  
+  Widget _buildLogItem(LogEntry log, ColorScheme colorScheme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _getLogColor(log.level).withOpacity(0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _getLogColor(log.level).withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 左侧彩色条
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: _getLogColor(log.level),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    AppLogger.info('Test log message ${DateTime.now().millisecondsSinceEpoch}');
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Test Log'),
+              ),
+            ),
+            // 日志内容
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 日志级别和标签
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getLogColor(log.level).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _getLogLevelText(log.level),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: _getLogColor(log.level),
+                            ),
+                          ),
+                        ),
+                        if (log.tag != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.secondaryContainer,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              log.tag!,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSecondaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const Spacer(),
+                        Text(
+                          _formatTime(log.timestamp),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // 日志消息
+                    SelectableText(
+                      log.message,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: colorScheme.onSurface,
+                        height: 1.4,
+                      ),
+                    ),
+                    // 错误信息
+                    if (log.error != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: SelectableText(
+                          'Error: ${log.error}',
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}';
+  }
+  
+  String _getLogLevelText(LogLevel level) {
+    switch (level) {
+      case LogLevel.debug:
+        return t('log_level_debug');
+      case LogLevel.info:
+        return t('log_level_info');
+      case LogLevel.warning:
+        return t('log_level_warning');
+      case LogLevel.error:
+        return t('log_level_error');
+      case LogLevel.fatal:
+        return t('log_level_fatal');
+    }
+  }
+  
+  Widget _buildStatChip(String label, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
         ],

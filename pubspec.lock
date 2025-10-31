@@ -102,11 +102,24 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "5.0.0"
+  flutter_localizations:
+    dependency: "direct main"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
     source: sdk
     version: "0.0.0"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.19.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -171,6 +184,38 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.9.0"
+  preact_signals:
+    dependency: transitive
+    description:
+      name: preact_signals
+      sha256: "8bf3cec7fe784d224f1a1132ae7b2f9f3852609046ccb71c4f450a13dd811abf"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.9.3"
+  signals:
+    dependency: "direct main"
+    description:
+      name: signals
+      sha256: a7f5fea3f27708b2705cff501aa0eb32f893552943a7fa8b2851401164459d13
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "6.2.0"
+  signals_core:
+    dependency: transitive
+    description:
+      name: signals_core
+      sha256: "10e527cda3c400703e4156da16aeaea274644ecb7db11abeec7dc7cc9bec9abd"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "6.2.0"
+  signals_flutter:
+    dependency: transitive
+    description:
+      name: signals_flutter
+      sha256: d04c973e3feeaddd7d8428f3a8af911297febb3c083091217e1a1fc0c4d6504f
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "6.2.0"
   sky_engine:
     dependency: transitive
     description: flutter
