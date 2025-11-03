@@ -33,6 +33,7 @@
           }
         ],
         "backgroundModes": [
+          "dataTransfer",
           "taskKeeping",
           "location"
         ],
@@ -48,7 +49,13 @@
     ],
     "requestPermissions": [
       {
-        "name": "ohos.permission.INTERNET"
+        "name": "ohos.permission.INTERNET",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "inuse"
+        }
       },
       {
         "name": "ohos.permission.GET_NETWORK_INFO"
@@ -61,6 +68,16 @@
       },
       {
         "name": "ohos.permission.KEEP_BACKGROUND_RUNNING"
+      },
+      {
+        "name": "ohos.permission.LOCATION",
+        "reason": "$string:location_reason",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when":"inuse"
+        }
       },
       {
         "name": "ohos.permission.APPROXIMATELY_LOCATION",

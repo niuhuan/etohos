@@ -12,6 +12,7 @@ import { NetworkInstanceRunningInfo } from './PeerInfo';
 import { resourceManager } from '@kit.LocalizationKit'
 import { abilityAccessCtrl, bundleManager, common, Permissions } from '@kit.AbilityKit';
 import { i18n } from '@kit.LocalizationKit';
+import { geoLocationManager } from "@kit.LocationKit";
 
 let vpnWant: Want = {
   deviceId: "",
@@ -50,6 +51,25 @@ export default class EntryAbility extends FlutterAbility {
     super.onCreate(want, launchParam);
     // 初始化资源管理器
     this.resourceMgr = this.context.resourceManager;
+    // 如果是手机则需要开启地理位置
+    try {
+      let value = this.context.resourceManager.getDeviceCapabilitySync();
+      let deviceType = value.deviceType;
+      if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
+        let atManager = abilityAccessCtrl.createAtManager();
+        atManager.requestPermissionsFromUser(
+          this.context,
+          ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION', 'ohos.permission.LOCATION_IN_BACKGROUND'])
+          .then((data) => {
+            hilog.info(0x0000, 'testTag', `data: ${JSON.stringify(data)}`);
+          })
+          .catch((err: BusinessError) => {
+            hilog.error(0x0000, 'testTag', `err: ${JSON.stringify(err)}`);
+          })
+      }
+    } catch (err) {
+      hilog.error(0x0000, 'testTag', `catch err->${JSON.stringify(err)}`);
+    }
   }
 
   configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -139,34 +159,6 @@ export default class EntryAbility extends FlutterAbility {
       }
     }
     vpnExtension.stopVpnExtensionAbility(vpnWant);
-
-    let value = this.context.resourceManager.getDeviceCapabilitySync();
-    let deviceType = value.deviceType;
-    //if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
-    await this.checkPermissionGrant('ohos.permission.LOCATION')
-    await this.checkPermissionGrant('ohos.permission.LOCATION_IN_BACKGROUND')
-    await this.checkPermissionGrant('ohos.permission.APPROXIMATELY_LOCATION')
-    //}
-  }
-
-  async checkPermissionGrant(permission: Permissions): Promise<abilityAccessCtrl.GrantStatus> {
-    let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
-    let grantStatus: abilityAccessCtrl.GrantStatus = abilityAccessCtrl.GrantStatus.PERMISSION_DENIED;
-    let tokenId: number = 0;
-    try {
-      let bundleInfo: bundleManager.BundleInfo =
-        await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION);
-      let appInfo: bundleManager.ApplicationInfo = bundleInfo.appInfo;
-      tokenId = appInfo.accessTokenId;
-    } catch (error) {
-      const err: BusinessError = error as BusinessError;
-    }
-    try {
-      grantStatus = await atManager.checkAccessToken(tokenId, permission);
-    } catch (error) {
-      const err: BusinessError = error as BusinessError;
-    }
-    return grantStatus;
   }
 
   async connect_vpn(argsAll: Map<string, Any>) {
@@ -238,6 +230,12 @@ export default class EntryAbility extends FlutterAbility {
 uri = "${element}"
       `
     });
+    let magic_dns = false;
+    let flags = "";
+    if (magic_dns) {
+      flags +=
+      "accept_dns = true\n";
+    }
     const etConfigString = `
 instance_id = "${args.get("instanceId")}"
 instance_name = "${args.get("instanceName")}"
@@ -251,7 +249,6 @@ network_name = "${args.get("networkName")}"
 network_secret = "${args.get("networkSecret")}"
 ${peers}
 [flags]
-accept_dns = true
 dev_name = "vpn-tun"
 mtu = 1500
     `;
@@ -275,12 +272,27 @@ mtu = 1500
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
     let bgMod: string[] = [];
-    //if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType) {
-    //  bgMod = ["taskKeeping"];
-    //} else {
-    bgMod = ["location"];
-    //}
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType) {
+      bgMod = [
+        "dataTransfer",
+        "taskKeeping"
+      ];
+    } else {
+      bgMod = [
+        "dataTransfer",
+        "location"
+      ];
+    }
 
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
+      try {
+        let request: geoLocationManager.ContinuousLocationRequest =
+          { 'interval': 5, 'locationScenario': geoLocationManager.UserActivityScenario.NAVIGATION };
+        geoLocationManager.on('locationChange', request, this.mock_loc);
+      } catch (e) {
+        hilog.error(0x0000, 'testTag', `catch err->${e}`);
+      }
+    }
     backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
       let needSetTun = true;
       time_id = setInterval(() => {
@@ -289,6 +301,7 @@ mtu = 1500
         hilog.warn(0, 'loop', '%{public}s', "infos :" +
           " " + JSON.stringify(infos));
         for (let element of infos) {
+
           hilog.warn(0, 'loop', '%{public}s', "element : " + JSON.stringify(element));
           let json: Any = JSON.parse(element.value);
           hilog.warn(0, 'loop', '%{public}s', "json : " + JSON.stringify(json));
@@ -306,13 +319,13 @@ mtu = 1500
                     address: convertAddrToIp(infos.my_node_info.virtual_ipv4.address.addr),
                     family: 1
                   },
-                  prefixLength: 24
+                  prefixLength: infos.my_node_info.virtual_ipv4.network_length,
                 }],
                 mtu: 1500,
                 blockedApplications: [
                   "dev.niuhuan.etohos"
                 ],
-                dnsAddresses: dnsList,
+                dnsAddresses: magic_dns ? ["100.100.100.101"] : dnsList,
               };
               let setUpTun = async () => {
                 vpnConnection =
@@ -336,12 +349,24 @@ mtu = 1500
     });
   }
 
+  async mock_loc() {
+  }
+
   async disconnect_vpn() {
     backgroundTaskManager.stopBackgroundRunning(this.context);
     vpnConnection?.destroy();
     clearInterval(time_id);
     stopNetworkInstance([running_inst]);
     isConnected = false;
+    let value = this.context.resourceManager.getDeviceCapabilitySync();
+    let deviceType = value.deviceType;
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
+      try {
+         geoLocationManager.off('locationChange', this.mock_loc);
+      } catch (e) {
+        hilog.error(0x0000, 'testTag', `catch err->${e}`);
+      }
+    }
   }
 
   recordNetworkStatus(infos: NetworkInstanceRunningInfo) {
@@ -397,7 +422,6 @@ mtu = 1500
       hilog.error(0, 'recordNetworkStatus', 'Error recording network status: %{public}s', JSON.stringify(e));
     }
   }
-
 }
 
 export function convertAddrToIp(addr: number): string {
