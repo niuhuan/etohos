@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:etohos/et_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
+import 'package:etohos/methods.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -151,6 +153,71 @@ class _EditScreenState extends State<EditScreen> {
     }
   }
 
+  void _scanQRCode() async {
+    try {
+      final result = await methods.scanCode();
+      if (result.isEmpty) {
+        return;
+      }
+
+      // Parse JSON from scanned code
+      try {
+        final jsonData = jsonDecode(result) as Map<String, dynamic>;
+        final config = EtConfig.fromJson(jsonData);
+
+        // Fill in the form with scanned data
+        setState(() {
+          _instanceIdController.text = config.instanceId;
+          _instanceNameController.text = config.instanceName;
+          _hostnameController.text = config.hostname;
+          _networkNameController.text = config.networkName;
+          _networkSecretController.text = config.networkSecret;
+          
+          // Update peer controllers
+          for (var controller in _peerControllers) {
+            controller.dispose();
+          }
+          _peerControllers = config.peers.map((peer) => TextEditingController(text: peer)).toList();
+          if (_peerControllers.isEmpty) {
+            _peerControllers = [TextEditingController()];
+          }
+          
+          _ipv4Controller.text = config.ipv4;
+          _dhcp = config.dhcp;
+          _enableKcpProxy = config.enableKcpProxy;
+          _disableKcpInput = config.disableKcpInput;
+          _enableQuicProxy = config.enableQuicProxy;
+          _disableQuicInput = config.disableQuicInput;
+          _privateMode = config.privateMode;
+          _latencyFirst = config.latencyFirst;
+          _useSmoltcp = config.useSmoltcp;
+          _noTun = config.noTun;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t('scan_success'))),
+        );
+      } catch (e) {
+        // JSON parsing or config creation failed
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t('invalid_qr_data'))),
+        );
+      }
+    } catch (e) {
+      // Scan operation failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t('scan_failed'))),
+      );
+    }
+  }
+
+  void _importFromNearby() {
+    // TODO: Implement nearby device import
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(t('feature_coming_soon'))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Watch((context) => _build(context));
@@ -218,6 +285,29 @@ class _EditScreenState extends State<EditScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+              // Import buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _buildModernButton(
+                    context,
+                    icon: Icons.devices,
+                    label: t('import_nearby'),
+                    onPressed: _importFromNearby,
+                    isPrimary: false,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildModernButton(
+                    context,
+                    icon: Icons.qr_code_scanner,
+                    label: t('scan_qr'),
+                    onPressed: _scanQRCode,
+                    isPrimary: true,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
               // 基本信息分组
               _buildSectionHeader(context, t('basic_info'), Icons.info_outline),
               const SizedBox(height: 12),
@@ -466,6 +556,80 @@ class _EditScreenState extends State<EditScreen> {
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _buildModernButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required bool isPrimary,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: isPrimary
+                ? LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isPrimary ? null : (isDark ? colorScheme.surfaceVariant : colorScheme.surface),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isPrimary 
+                  ? colorScheme.primary 
+                  : colorScheme.outline.withOpacity(0.3),
+              width: isPrimary ? 0 : 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isPrimary
+                    ? colorScheme.primary.withOpacity(0.3)
+                    : Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                blurRadius: isPrimary ? 8 : 4,
+                offset: Offset(0, isPrimary ? 3 : 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isPrimary 
+                    ? Colors.white 
+                    : colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isPrimary 
+                      ? Colors.white 
+                      : colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

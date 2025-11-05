@@ -215,6 +215,18 @@ class AppLocalizations {
     'view_logs_tooltip': {'en': 'View Events', 'zh': '查看事件'},
     'settings_tooltip': {'en': 'Settings', 'zh': '设置'},
     'add_config_tooltip': {'en': 'Add Configuration', 'zh': '添加配置'},
+    
+    // 二维码功能
+    'scan_qr': {'en': 'Scan QR', 'zh': '扫码'},
+    'import_nearby': {'en': 'Import Nearby', 'zh': '附近设备导入'},
+    'share_qr': {'en': 'Share QR Code', 'zh': '分享二维码'},
+    'share_config': {'en': 'Share Configuration', 'zh': '分享配置'},
+    'scan_success': {'en': 'Configuration imported successfully', 'zh': '配置导入成功'},
+    'scan_failed': {'en': 'Unable to scan QR code', 'zh': '未能成功扫码'},
+    'invalid_qr_data': {'en': 'Invalid QR code content', 'zh': '二维码内容无效'},
+    'failed_to_generate_qr': {'en': 'Failed to generate QR code', 'zh': '生成二维码失败'},
+    'feature_coming_soon': {'en': 'This feature is coming soon', 'zh': '该功能即将上线'},
+    'close': {'en': 'Close', 'zh': '关闭'},
   };
 }
 

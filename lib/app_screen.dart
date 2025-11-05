@@ -237,6 +237,71 @@ class _AppScreenState extends State<AppScreen> {
     }
   }
 
+  void _shareConfig(EtConfig config) async {
+    try {
+      // Convert config to JSON string
+      final jsonString = jsonEncode(config.toJson());
+      
+      // Generate QR code (returns base64)
+      final qrCodeBase64 = await methods.genCode(jsonString);
+      
+      if (qrCodeBase64.isEmpty) {
+        throw Exception('Failed to generate QR code');
+      }
+
+      // Show QR code in dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.qr_code_2),
+              const SizedBox(width: 8),
+              Text(t('share_config')),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Display QR code image
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Image.memory(
+                  base64Decode(qrCodeBase64),
+                  width: 250,
+                  height: 250,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                config.instanceName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(t('close')),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${t('failed_to_generate_qr')}: $e')),
+      );
+    }
+  }
+
   void _openSettings() async {
     final result = await Navigator.of(context).push<Settings>(
       MaterialPageRoute(
@@ -462,6 +527,19 @@ class _AppScreenState extends State<AppScreen> {
 // 底部：操作按钮（右对齐）
                     Row(
                       children: [
+// 分享二维码按钮
+                        IconButton(
+                          onPressed: () => _shareConfig(config),
+                          icon: Icon(
+                            Icons.qr_code_2,
+                            size: 20,
+                            color: colorScheme.primary,
+                          ),
+                          tooltip: t('share_qr'),
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                        const SizedBox(width: 4),
 // 删除按钮
                         IconButton(
                           onPressed: (AppData.connected && isSelected)

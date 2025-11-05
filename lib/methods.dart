@@ -160,6 +160,26 @@ class Methods {
       return [];
     }
   }
+
+  Future<String> scanCode() async {
+    try {
+      final result = await _channel.invokeMethod("scan_code");
+      return result ?? "";
+    } catch (e) {
+      AppLogger.error('Error scanning code', error: e);
+      rethrow;
+    }
+  }
+
+  Future<String> genCode(String content) async {
+    try {
+      final result = await _channel.invokeMethod("gen_code", content);
+      return result ?? "";
+    } catch (e) {
+      AppLogger.error('Error generating code', error: e);
+      rethrow;
+    }
+  }
 }
 
 class ConnectState {

@@ -16,6 +16,8 @@ import { geoLocationManager } from "@kit.LocationKit";
 import { statusBarManager } from '@kit.StatusBarExtensionKit';
 import { image } from '@kit.ImageKit';
 import { display, window } from '@kit.ArkUI'
+import { scanBarcode, scanCore, generateBarcode } from '@kit.ScanKit';
+import { buffer } from '@kit.ArkTS';
 
 let vpnWant: Want = {
   deviceId: "",
@@ -65,6 +67,7 @@ export default class EntryAbility extends FlutterAbility {
           this.context,
         );
       } else {
+      }
         let atManager = abilityAccessCtrl.createAtManager();
         atManager.requestPermissionsFromUser(
           this.context,
@@ -76,7 +79,6 @@ export default class EntryAbility extends FlutterAbility {
           .catch((err: BusinessError) => {
             hilog.error(0x0000, 'testTag', `err: ${JSON.stringify(err)}`);
           })
-      }
     } catch (err) {
       hilog.error(0x0000, 'testTag', `catch err->${JSON.stringify(err)}`);
     }
@@ -225,11 +227,18 @@ export default class EntryAbility extends FlutterAbility {
         case 'get_network_history':
           result.success(networkHistory);
           break;
+        case 'scan_code':
+          result.success(await this.scanCode());
+          break;
+        case 'gen_code':
+          result.success(await this.genCode(call.args));
+          break;
         default:
           result.error("-1", `no call`, null);
           break;
       }
     } catch (e) {
+      hilog.error(0x0001,'testTag', `错误码: ${e.code}, 错误信息: ${e.message}`);
       result.error("-1", `${JSON.stringify(e)}`, e);
     }
   }
@@ -376,17 +385,17 @@ mtu = 1500
       ];
     } else {
       bgMod = [
-        "dataTransfer",
-        "location"
+        "dataTransfer"
       ];
+    }
 
-      try {
-        let request: geoLocationManager.ContinuousLocationRequest =
-          { 'interval': 5, 'locationScenario': geoLocationManager.UserActivityScenario.NAVIGATION };
-        geoLocationManager.on('locationChange', request, this.mock_loc);
-      } catch (e) {
-        hilog.error(0x0000, 'testTag', `catch err->${e}`);
-      }
+    bgMod.push("location");
+    try {
+      let request: geoLocationManager.ContinuousLocationRequest =
+        { 'interval': 5, 'locationScenario': geoLocationManager.UserActivityScenario.NAVIGATION };
+      geoLocationManager.on('locationChange', request, this.mock_loc);
+    } catch (e) {
+      hilog.error(0x0000, 'testTag', `catch err->${e}`);
     }
 
     backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
@@ -460,12 +469,12 @@ mtu = 1500
       resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
       //
     } else {
+    }
       try {
         geoLocationManager.off('locationChange', this.mock_loc);
       } catch (e) {
         hilog.error(0x0000, 'testTag', `catch err->${e}`);
       }
-    }
   }
 
   recordNetworkStatus(infos: NetworkInstanceRunningInfo) {
@@ -521,6 +530,34 @@ mtu = 1500
       hilog.error(0, 'recordNetworkStatus', 'Error recording network status: %{public}s', JSON.stringify(e));
     }
   }
+
+  async scanCode() {
+    let options: scanBarcode.ScanOptions = { scanTypes: [scanCore.ScanType.ALL], enableMultiMode: true, enableAlbum: true };
+    let result: scanBarcode.ScanResult = await scanBarcode.startScanForResult(this.context, options);
+    return result.originalValue;
+  }
+
+  async genCode(data: string): Promise<string> {
+    let hexString = this.stringToHex(data);
+    let contentBuffer: ArrayBuffer = buffer.from(hexString, 'hex').buffer; // 通过包含十六进制字符的字符串创建Buffer
+    let options: generateBarcode.CreateOptions = {
+      scanType: scanCore.ScanType.QR_CODE,
+      height: 800,
+      width: 800
+    }
+    let pm = await generateBarcode.createBarcode(contentBuffer, options);
+    const imagePacker: image.ImagePacker = image.createImagePacker();
+    let packOpts: image.PackingOption = { format: 'image/png', quality: 100 };
+    let imgData = await imagePacker.packToData(pm, packOpts);
+    return buffer.from(imgData).toString('base64');
+  }
+
+  stringToHex(input: string) {
+    return Array.from(input).map(char =>
+    char.charCodeAt(0).toString(16).padStart(2, '0')
+    ).join('');
+  }
+
 }
 
 export function convertAddrToIp(addr: number): string {

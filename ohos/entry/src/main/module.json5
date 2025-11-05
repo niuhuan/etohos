@@ -48,6 +48,17 @@
       }
     ],
     "requestPermissions": [
+
+      {
+        "name": "ohos.permission.CAMERA",
+        "reason": "$string:scan_code",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "inuse"
+        }
+      },
       {
         "name": "ohos.permission.INTERNET",
         "usedScene": {

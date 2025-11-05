@@ -47,6 +47,10 @@
     {
       "name": "language_change_failed",
       "value": "Failed to change language"
+    },
+    {
+      "name": "scan_code",
+      "value": "Scan code"
     }
   ]
 }
