@@ -54,8 +54,11 @@ class _EditScreenState extends State<EditScreen> {
     // Initialize peer controllers
     if (config?.peers != null && config!.peers.isNotEmpty) {
       _peerControllers = config.peers.map((peer) => TextEditingController(text: peer)).toList();
+    } else if (config == null) {
+      // When creating new config, start with one empty peer input
+      _peerControllers = [TextEditingController()];
     } else {
-      _peerControllers = []; // Start with empty list, peers can be empty
+      _peerControllers = []; // Editing existing config with no peers
     }
     _ipv4Controller = TextEditingController(text: config?.ipv4 ?? '');
     _dhcp = config?.dhcp ?? true;
