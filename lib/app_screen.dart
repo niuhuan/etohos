@@ -8,6 +8,7 @@ import 'package:etohos/app_data.dart';
 import 'package:etohos/network_status.dart';
 import 'package:etohos/log_viewer.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
+import 'package:etohos/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -238,9 +239,21 @@ class _AppScreenState extends State<AppScreen> {
   }
 
   void _shareConfig(EtConfig config) async {
+    bool isSharing = false;
+    
     try {
       // Convert config to JSON string
       final jsonString = jsonEncode(config.toJson());
+      
+      // Share to kvStore for nearby device import
+      try {
+        isSharing = await methods.shareConfigToKVStore(jsonString);
+        if (isSharing) {
+          AppLogger.info('Config shared to kvStore');
+        }
+      } catch (e) {
+        AppLogger.error('Failed to share to kvStore', error: e);
+      }
       
       // Generate QR code (returns base64)
       final qrCodeBase64 = await methods.genCode(jsonString);
@@ -250,7 +263,7 @@ class _AppScreenState extends State<AppScreen> {
       }
 
       // Show QR code in dialog
-      showDialog(
+      await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: Row(
@@ -285,6 +298,15 @@ class _AppScreenState extends State<AppScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 8),
+              Text(
+                t('share_hint'),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
           actions: [
@@ -295,10 +317,29 @@ class _AppScreenState extends State<AppScreen> {
           ],
         ),
       );
+      
+      // After dialog closes, stop sharing
+      if (isSharing) {
+        try {
+          await methods.stopSharingConfig();
+          AppLogger.info('Stopped sharing config');
+        } catch (e) {
+          AppLogger.error('Failed to stop sharing', error: e);
+        }
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${t('failed_to_generate_qr')}: $e')),
       );
+      
+      // Cleanup on error
+      if (isSharing) {
+        try {
+          await methods.stopSharingConfig();
+        } catch (e) {
+          AppLogger.error('Failed to cleanup share', error: e);
+        }
+      }
     }
   }
 

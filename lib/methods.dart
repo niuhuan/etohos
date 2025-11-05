@@ -198,6 +198,40 @@ class Methods {
       rethrow;
     }
   }
+
+  /// Share configuration to distributed kvStore (using fixed key "shared_config")
+  Future<bool> shareConfigToKVStore(String configJson) async {
+    try {
+      final result = await _channel.invokeMethod("share_config_to_kvstore", configJson);
+      return result == true;
+    } catch (e) {
+      AppLogger.error('Error sharing config to kvStore', error: e);
+      rethrow;
+    }
+  }
+
+  /// Stop sharing configuration (delete from kvStore)
+  Future<bool> stopSharingConfig() async {
+    try {
+      final result = await _channel.invokeMethod("stop_sharing_config");
+      return result == true;
+    } catch (e) {
+      AppLogger.error('Error stopping sharing', error: e);
+      rethrow;
+    }
+  }
+
+  /// Request configuration from another device via kvStore
+  /// Syncs from the specific device and reads the "shared_config" key
+  Future<String?> requestConfigFromDevice(String deviceId) async {
+    try {
+      final result = await _channel.invokeMethod("request_config_from_device", deviceId);
+      return result as String?;
+    } catch (e) {
+      AppLogger.error('Error requesting config from device', error: e);
+      rethrow;
+    }
+  }
 }
 
 /// Basic description information of a distributed device

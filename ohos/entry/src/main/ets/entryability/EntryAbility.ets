@@ -19,6 +19,7 @@ import { display, window } from '@kit.ArkUI'
 import { scanBarcode, scanCore, generateBarcode } from '@kit.ScanKit';
 import { buffer } from '@kit.ArkTS';
 import distributedDeviceManager from '@ohos.distributedDeviceManager';
+import distributedKVStore from '@ohos.data.distributedKVStore';
 
 let vpnWant: Want = {
   deviceId: "",
@@ -53,6 +54,8 @@ interface NetworkData {
 export default class EntryAbility extends FlutterAbility {
   private resourceMgr: resourceManager.ResourceManager | null = null;
   private dmClass: distributedDeviceManager.DeviceManager | null = null;
+  private kvStoreManager: distributedKVStore.KVManager | null = null;
+  private kvStore: distributedKVStore.DeviceKVStore | null = null;
 
   initDmClass(): void {
     try {
@@ -62,23 +65,88 @@ export default class EntryAbility extends FlutterAbility {
     }
   }
 
+  async initKVStore(): Promise<void> {
+    try {
+      const kvManagerConfig: distributedKVStore.KVManagerConfig = {
+        bundleName: 'dev.niuhuan.etohos',
+        context: this.context
+      };
+
+      this.kvStoreManager = distributedKVStore.createKVManager(kvManagerConfig);
+      hilog.info(0x0000, 'kvStore', 'KVManager created successfully');
+
+      const options: distributedKVStore.Options = {
+        createIfMissing: true,
+        encrypt: false,
+        backup: false,
+        autoSync: true,
+        kvStoreType: distributedKVStore.KVStoreType.DEVICE_COLLABORATION,
+        securityLevel: distributedKVStore.SecurityLevel.S2
+      };
+
+      this.kvStore = await this.kvStoreManager.getKVStore<distributedKVStore.DeviceKVStore>(
+        'etohos_config_store',
+        options
+      );
+
+      // Add sync complete listener
+      this.kvStore.on('dataChange', distributedKVStore.SubscribeType.SUBSCRIBE_TYPE_REMOTE, this.syncCallback)
+
+      hilog.info(0x0000, 'kvStore', 'KVStore created successfully');
+    } catch (err) {
+      hilog.error(0x0000, 'kvStore', 'Failed to init KVStore: ' + JSON.stringify(err));
+      if (err.code == 15100002) {
+        await this.kvStoreManager!.deleteKVStore('dev.niuhuan.etohos', 'etohos_config_store');
+      }
+
+      const options: distributedKVStore.Options = {
+        createIfMissing: true,
+        encrypt: false,
+        backup: false,
+        autoSync: true,
+        kvStoreType: distributedKVStore.KVStoreType.DEVICE_COLLABORATION,
+        securityLevel: distributedKVStore.SecurityLevel.S2
+      };
+      this.kvStore = await this.kvStoreManager!.getKVStore<distributedKVStore.DeviceKVStore>(
+        'etohos_config_store',
+        options
+      );
+      this.kvStore.on('dataChange', distributedKVStore.SubscribeType.SUBSCRIBE_TYPE_REMOTE, this.syncCallback)
+      hilog.info(0x0000, 'kvStore', 'KVStore created successfully');
+    }
+  }
+
+  syncCallback(data: distributedKVStore.ChangeNotification){
+    hilog.info(0x0000, 'kvStore', '收到数据同步:', data)
+    data.insertEntries.forEach((e) => {
+      hilog.info(0x0000, 'kvStore', `同步数据: ${data.deviceId} insertEntries => ${e.key} = ${e.value}`)
+    })
+    data.updateEntries.forEach((e) => {
+      hilog.info(0x0000, 'kvStore', `同步数据: ${data.deviceId} updateEntries => ${e.key} = ${e.value}`)
+    })
+    data.deleteEntries.forEach((e) => {
+      hilog.info(0x0000, 'kvStore', `同步数据: ${data.deviceId} deleteEntries => ${e.key} = ${e.value}`)
+    })
+  }
+
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     super.onCreate(want, launchParam);
     // 初始化资源管理器
     this.resourceMgr = this.context.resourceManager;
     //
     this.initDmClass();
+    // this.initKVStore();
     // 如果是手机则需要开启地理位置
-      let value = this.context.resourceManager.getDeviceCapabilitySync();
-      let deviceType = value.deviceType;
+    let value = this.context.resourceManager.getDeviceCapabilitySync();
+    let deviceType = value.deviceType;
 
-      if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
-        resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
-        this.addToStatusBar(
-          this.context,
-        );
-      } else {
-      }
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
+      resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
+      this.addToStatusBar(
+        this.context,
+      );
+    } else {
+    }
     let atManager = abilityAccessCtrl.createAtManager();
     try {
       let p = atManager.requestPermissionsFromUser(
@@ -248,12 +316,21 @@ export default class EntryAbility extends FlutterAbility {
         case 'device_list':
           result.success(await this.deviceList());
           break;
+        case 'share_config_to_kvstore':
+          result.success(await this.shareConfigToKVStore(call.args));
+          break;
+        case 'stop_sharing_config':
+          result.success(await this.stopSharingConfig());
+          break;
+        case 'request_config_from_device':
+          result.success(await this.requestConfigFromDevice(call.args));
+          break;
         default:
           result.error("-1", `no call`, null);
           break;
       }
     } catch (e) {
-      hilog.error(0x0001,'testTag', `错误码: ${e.code}, 错误信息: ${e.message}`);
+      hilog.error(0x0001, 'testTag', `错误码: ${e.code}, 错误信息: ${e.message}`);
       result.error("-1", `${JSON.stringify(e)}`, e);
     }
   }
@@ -485,11 +562,11 @@ mtu = 1500
       //
     } else {
     }
-      try {
-        geoLocationManager.off('locationChange', this.mock_loc);
-      } catch (e) {
-        hilog.error(0x0000, 'testTag', `catch err->${e}`);
-      }
+    try {
+      geoLocationManager.off('locationChange', this.mock_loc);
+    } catch (e) {
+      hilog.error(0x0000, 'testTag', `catch err->${e}`);
+    }
   }
 
   recordNetworkStatus(infos: NetworkInstanceRunningInfo) {
@@ -547,7 +624,8 @@ mtu = 1500
   }
 
   async scanCode() {
-    let options: scanBarcode.ScanOptions = { scanTypes: [scanCore.ScanType.ALL], enableMultiMode: true, enableAlbum: true };
+    let options: scanBarcode.ScanOptions =
+      { scanTypes: [scanCore.ScanType.ALL], enableMultiMode: true, enableAlbum: true };
     let result: scanBarcode.ScanResult = await scanBarcode.startScanForResult(this.context, options);
     return result.originalValue;
   }
@@ -580,6 +658,86 @@ mtu = 1500
     return this.dmClass!.getAvailableDeviceListSync();
   }
 
+  async shareConfigToKVStore(configJson: string): Promise<boolean> {
+    try {
+      if (this.kvStore == null) {
+        hilog.error(0x0000, 'kvStore', 'KVStore not initialized');
+        return false;
+      }
+
+      // Use fixed key "shared_config"
+      await this.kvStore.put('shared_config', configJson);
+      hilog.info(0x0000, 'kvStore', 'Config shared with fixed key: shared_config');
+
+      if (this.dmClass != null) {
+        try {
+          let list = this.dmClass!.getAvailableDeviceListSync();
+          this.kvStore.sync(
+            list.map(e => e.deviceId),
+            distributedKVStore.SyncMode.PUSH_PULL,
+            1000,
+          );
+          hilog.info(0x0000, 'kvStore', 'Sync config: ' + list.map(e => `[${e.deviceName}(${e.deviceId})]`));
+        } catch (error) {
+          hilog.error(0x0000, 'kvStore', 'Failed to sync config: ' + JSON.stringify(error));
+        }
+      }
+
+      return true;
+    } catch (error) {
+      hilog.error(0x0000, 'kvStore', 'Failed to share config: ' + JSON.stringify(error));
+      return false;
+    }
+  }
+
+  async stopSharingConfig(): Promise<boolean> {
+    try {
+      if (this.kvStore == null) {
+        hilog.error(0x0000, 'kvStore', 'KVStore not initialized');
+        return false;
+      }
+
+      // Delete the shared config with fixed key
+      await this.kvStore.delete('shared_config');
+      hilog.info(0x0000, 'kvStore', 'Stopped sharing config');
+
+      return true;
+    } catch (error) {
+      hilog.error(0x0000, 'kvStore', 'Failed to stop sharing: ' + JSON.stringify(error));
+      return false;
+    }
+  }
+
+  async requestConfigFromDevice(deviceId: string): Promise<string | null> {
+    if (this.kvStore == null) {
+      hilog.error(0x0000, 'kvStore', 'KVStore not initialized');
+      return null;
+    }
+
+    hilog.info(0x0000, 'kvStore', 'Syncing from device: %{public}s', deviceId);
+
+    // Sync only from the specific device
+    await this.kvStore.sync([deviceId], distributedKVStore.SyncMode.PULL_ONLY, 1000);
+
+    let es = await this.kvStore.getEntries("shared");
+    es.forEach((e)=> {
+      hilog.info(0x0000, 'kvStore', `${e.key} ====> ${e.value}`);
+    });
+
+    // Get config from kvStore using fixed key
+    // let configValue = await this.kvStore.get(deviceId, 'shared_config');
+    let configValue = "";
+
+    if (configValue) {
+      let configJson = configValue as string;
+      hilog.info(0x0000, 'kvStore', 'Config retrieved successfully from device %{public}s', deviceId);
+      return configJson;
+    } else {
+      hilog.warn(0x0000, 'kvStore', 'No shared config found on device %{public}s', deviceId);
+      return null;
+    }
+
+  }
 }
 
 export function convertAddrToIp(addr: number): string {

@@ -221,6 +221,7 @@ class AppLocalizations {
     'import_nearby': {'en': 'Import Nearby', 'zh': '附近设备导入'},
     'share_qr': {'en': 'Share QR Code', 'zh': '分享二维码'},
     'share_config': {'en': 'Share Configuration', 'zh': '分享配置'},
+    'share_hint': {'en': 'Scan QR code or use nearby device import', 'zh': '可扫码或从附近设备导入'},
     'scan_success': {'en': 'Configuration imported successfully', 'zh': '配置导入成功'},
     'scan_failed': {'en': 'Unable to scan QR code', 'zh': '未能成功扫码'},
     'invalid_qr_data': {'en': 'Invalid QR code content', 'zh': '二维码内容无效'},
@@ -229,11 +230,15 @@ class AppLocalizations {
     'close': {'en': 'Close', 'zh': '关闭'},
     
     // 附近设备
-    'searching_devices': {'en': 'Searching for nearby devices...', 'zh': '正在搜索附近设备...'},
-    'no_devices_found': {'en': 'No nearby devices found', 'zh': '未发现附近设备'},
-    'failed_to_get_devices': {'en': 'Failed to get device list', 'zh': '获取设备列表失败'},
-    'select_device': {'en': 'Select Device', 'zh': '选择设备'},
-    'device_selected': {'en': 'Selected: {name}', 'zh': '已选择：{name}'},
+  'searching_devices': {'en': 'Searching for devices...', 'zh': '正在搜索设备...'},
+  'no_devices_found': {'en': 'No devices found', 'zh': '未发现设备'},
+  'failed_to_get_devices': {'en': 'Failed to get devices', 'zh': '获取设备列表失败'},
+  'select_device': {'en': 'Select Device', 'zh': '选择设备'},
+    'importing_config': {'en': 'Importing configuration...', 'zh': '正在导入配置...'},
+    'config_not_available': {'en': 'Configuration not available', 'zh': '配置不可用'},
+    'config_imported_from': {'en': 'Configuration imported from {name}', 'zh': '已从{name}导入配置'},
+    'invalid_config_data': {'en': 'Invalid configuration data', 'zh': '配置数据无效'},
+    'failed_to_import_config': {'en': 'Failed to import configuration', 'zh': '导入配置失败'},
   };
 }
 

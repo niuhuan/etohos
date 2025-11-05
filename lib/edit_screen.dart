@@ -236,7 +236,7 @@ class _EditScreenState extends State<EditScreen> {
         ),
       );
 
-      // Get device list
+      // Get available devices
       final devices = await methods.getDeviceList();
       
       // Close loading dialog
@@ -353,15 +353,105 @@ class _EditScreenState extends State<EditScreen> {
     );
   }
 
-  void _requestConfigFromDevice(DeviceBasicInfo device) {
-    // TODO: Implement actual device-to-device communication
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          t('device_selected').replaceAll('{name}', device.deviceName),
+  void _requestConfigFromDevice(DeviceBasicInfo device) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(t('importing_config')),
+              ],
+            ),
+          ),
         ),
-      ),
-    );
+      );
+
+      // Request configuration from the selected device
+      final configJson = await methods.requestConfigFromDevice(device.deviceId);
+      
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      if (configJson == null || configJson.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t('config_not_available'))),
+          );
+        }
+        return;
+      }
+
+      // Parse and fill the form with received configuration
+      try {
+        final jsonData = jsonDecode(configJson) as Map<String, dynamic>;
+        final config = EtConfig.fromJson(jsonData);
+
+        setState(() {
+          _instanceIdController.text = config.instanceId;
+          _instanceNameController.text = config.instanceName;
+          _hostnameController.text = config.hostname;
+          _networkNameController.text = config.networkName;
+          _networkSecretController.text = config.networkSecret;
+          
+          // Update peer controllers
+          for (var controller in _peerControllers) {
+            controller.dispose();
+          }
+          _peerControllers = config.peers.map((peer) => TextEditingController(text: peer)).toList();
+          if (_peerControllers.isEmpty) {
+            _peerControllers = [TextEditingController()];
+          }
+          
+          _ipv4Controller.text = config.ipv4;
+          _dhcp = config.dhcp;
+          _enableKcpProxy = config.enableKcpProxy;
+          _disableKcpInput = config.disableKcpInput;
+          _enableQuicProxy = config.enableQuicProxy;
+          _disableQuicInput = config.disableQuicInput;
+          _privateMode = config.privateMode;
+          _latencyFirst = config.latencyFirst;
+          _useSmoltcp = config.useSmoltcp;
+          _noTun = config.noTun;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                t('config_imported_from')
+                    .replaceAll('{name}', device.deviceName),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t('invalid_config_data'))),
+          );
+        }
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t('failed_to_import_config'))),
+        );
+      }
+    }
   }
 
   @override
@@ -435,14 +525,14 @@ class _EditScreenState extends State<EditScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _buildModernButton(
-                    context,
-                    icon: Icons.devices,
-                    label: t('import_nearby'),
-                    onPressed: _importFromNearby,
-                    isPrimary: false,
-                  ),
-                  const SizedBox(width: 12),
+                  // _buildModernButton(
+                  //   context,
+                  //   icon: Icons.devices,
+                  //   label: t('import_nearby'),
+                  //   onPressed: _importFromNearby,
+                  //   isPrimary: false,
+                  // ),
+                  // const SizedBox(width: 12),
                   _buildModernButton(
                     context,
                     icon: Icons.qr_code_scanner,

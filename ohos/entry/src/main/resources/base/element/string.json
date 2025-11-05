@@ -55,6 +55,14 @@
     {
       "name": "data_reason",
       "value": "config transfer"
+    },
+    {
+      "name": "ConfigSelectorAbility_desc",
+      "value": "配置选择器"
+    },
+    {
+      "name": "ConfigSelectorAbility_label",
+      "value": "选择配置"
     }
   ]
 }
