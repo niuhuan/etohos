@@ -211,10 +211,156 @@ class _EditScreenState extends State<EditScreen> {
     }
   }
 
-  void _importFromNearby() {
-    // TODO: Implement nearby device import
+  void _importFromNearby() async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(t('searching_devices')),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Get device list
+      final devices = await methods.getDeviceList();
+      
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      if (devices.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t('no_devices_found'))),
+          );
+        }
+        return;
+      }
+
+      // Show device selection dialog
+      if (mounted) {
+        _showDeviceSelectionDialog(devices);
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) Navigator.of(context).pop();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t('failed_to_get_devices'))),
+        );
+      }
+    }
+  }
+
+  void _showDeviceSelectionDialog(List<DeviceBasicInfo> devices) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.devices),
+            const SizedBox(width: 8),
+            Text(t('select_device')),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: devices.length,
+            itemBuilder: (context, index) {
+              final device = devices[index];
+              return _buildDeviceListItem(device);
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(t('cancel')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeviceListItem(DeviceBasicInfo device) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            device.getDeviceIcon(),
+            color: colorScheme.primary,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          device.deviceName,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        subtitle: Text(
+          device.getDeviceTypeName(),
+          style: TextStyle(
+            fontSize: 12,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: colorScheme.primary,
+        ),
+        onTap: () {
+          Navigator.of(context).pop();
+          _requestConfigFromDevice(device);
+        },
+      ),
+    );
+  }
+
+  void _requestConfigFromDevice(DeviceBasicInfo device) {
+    // TODO: Implement actual device-to-device communication
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(t('feature_coming_soon'))),
+      SnackBar(
+        content: Text(
+          t('device_selected').replaceAll('{name}', device.deviceName),
+        ),
+      ),
     );
   }
 

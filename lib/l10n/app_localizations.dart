@@ -227,6 +227,13 @@ class AppLocalizations {
     'failed_to_generate_qr': {'en': 'Failed to generate QR code', 'zh': '生成二维码失败'},
     'feature_coming_soon': {'en': 'This feature is coming soon', 'zh': '该功能即将上线'},
     'close': {'en': 'Close', 'zh': '关闭'},
+    
+    // 附近设备
+    'searching_devices': {'en': 'Searching for nearby devices...', 'zh': '正在搜索附近设备...'},
+    'no_devices_found': {'en': 'No nearby devices found', 'zh': '未发现附近设备'},
+    'failed_to_get_devices': {'en': 'Failed to get device list', 'zh': '获取设备列表失败'},
+    'select_device': {'en': 'Select Device', 'zh': '选择设备'},
+    'device_selected': {'en': 'Selected: {name}', 'zh': '已选择：{name}'},
   };
 }
 

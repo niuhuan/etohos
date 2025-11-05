@@ -51,6 +51,10 @@
     {
       "name": "scan_code",
       "value": "扫描二维码"
+    },
+    {
+      "name": "data_reason",
+      "value": "配置文件传输"
     }
   ]
 }

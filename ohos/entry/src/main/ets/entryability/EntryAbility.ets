@@ -18,6 +18,7 @@ import { image } from '@kit.ImageKit';
 import { display, window } from '@kit.ArkUI'
 import { scanBarcode, scanCore, generateBarcode } from '@kit.ScanKit';
 import { buffer } from '@kit.ArkTS';
+import distributedDeviceManager from '@ohos.distributedDeviceManager';
 
 let vpnWant: Want = {
   deviceId: "",
@@ -51,13 +52,23 @@ interface NetworkData {
 
 export default class EntryAbility extends FlutterAbility {
   private resourceMgr: resourceManager.ResourceManager | null = null;
+  private dmClass: distributedDeviceManager.DeviceManager | null = null;
+
+  initDmClass(): void {
+    try {
+      this.dmClass = distributedDeviceManager.createDeviceManager("dev.niuhuan.etohos");
+    } catch (err) {
+      hilog.error(0x0000, 'testTag', 'createDeviceManager err: ' + JSON.stringify(err));
+    }
+  }
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     super.onCreate(want, launchParam);
     // 初始化资源管理器
     this.resourceMgr = this.context.resourceManager;
+    //
+    this.initDmClass();
     // 如果是手机则需要开启地理位置
-    try {
       let value = this.context.resourceManager.getDeviceCapabilitySync();
       let deviceType = value.deviceType;
 
@@ -68,17 +79,18 @@ export default class EntryAbility extends FlutterAbility {
         );
       } else {
       }
-        let atManager = abilityAccessCtrl.createAtManager();
-        atManager.requestPermissionsFromUser(
-          this.context,
-          ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION',
-            'ohos.permission.LOCATION_IN_BACKGROUND'])
-          .then((data) => {
-            hilog.info(0x0000, 'testTag', `data: ${JSON.stringify(data)}`);
-          })
-          .catch((err: BusinessError) => {
-            hilog.error(0x0000, 'testTag', `err: ${JSON.stringify(err)}`);
-          })
+    let atManager = abilityAccessCtrl.createAtManager();
+    try {
+      let p = atManager.requestPermissionsFromUser(
+        this.context,
+        ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION',
+          'ohos.permission.LOCATION_IN_BACKGROUND', 'ohos.permission.DISTRIBUTED_DATASYNC'])
+        .then((data) => {
+          hilog.info(0x0000, 'testTag', `data: ${JSON.stringify(data)}`);
+        })
+        .catch((err: BusinessError) => {
+          hilog.error(0x0000, 'testTag', `err: ${JSON.stringify(err)}`);
+        });
     } catch (err) {
       hilog.error(0x0000, 'testTag', `catch err->${JSON.stringify(err)}`);
     }
@@ -232,6 +244,9 @@ export default class EntryAbility extends FlutterAbility {
           break;
         case 'gen_code':
           result.success(await this.genCode(call.args));
+          break;
+        case 'device_list':
+          result.success(await this.deviceList());
           break;
         default:
           result.error("-1", `no call`, null);
@@ -556,6 +571,13 @@ mtu = 1500
     return Array.from(input).map(char =>
     char.charCodeAt(0).toString(16).padStart(2, '0')
     ).join('');
+  }
+
+  async deviceList() {
+    if (this.dmClass == null) {
+      return [];
+    }
+    return this.dmClass!.getAvailableDeviceListSync();
   }
 
 }

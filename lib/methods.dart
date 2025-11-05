@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:etohos/et_config.dart';
 import 'package:etohos/settings.dart';
 import 'package:etohos/utils/logger.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 const defaultDnsList = ['223.5.5.5', '223.6.6.6', '8.8.8.8', '8.8.4.4'];
@@ -178,6 +179,104 @@ class Methods {
     } catch (e) {
       AppLogger.error('Error generating code', error: e);
       rethrow;
+    }
+  }
+
+  Future<List<DeviceBasicInfo>> getDeviceList() async {
+    try {
+      final result = await _channel.invokeMethod("device_list");
+      if (result == null) {
+        return [];
+      }
+      
+      final List<dynamic> deviceList = result as List<dynamic>;
+      return deviceList
+          .map((device) => DeviceBasicInfo.fromMap(device as Map<dynamic, dynamic>))
+          .toList();
+    } catch (e) {
+      AppLogger.error('Error getting device list', error: e);
+      rethrow;
+    }
+  }
+}
+
+/// Basic description information of a distributed device
+class DeviceBasicInfo {
+  /// Device identifier
+  final String deviceId;
+  
+  /// Device name
+  final String deviceName;
+  
+  /// Device type (phone, tablet, tv, smartVision, car)
+  final String deviceType;
+  
+  /// Device network id (optional)
+  final String? networkId;
+
+  const DeviceBasicInfo({
+    required this.deviceId,
+    required this.deviceName,
+    required this.deviceType,
+    this.networkId,
+  });
+
+  factory DeviceBasicInfo.fromMap(Map<dynamic, dynamic> map) {
+    return DeviceBasicInfo(
+      deviceId: map['deviceId'] as String? ?? '',
+      deviceName: map['deviceName'] as String? ?? '',
+      deviceType: map['deviceType'] as String? ?? '',
+      networkId: map['networkId'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'deviceId': deviceId,
+      'deviceName': deviceName,
+      'deviceType': deviceType,
+      if (networkId != null) 'networkId': networkId,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'DeviceBasicInfo(deviceId: $deviceId, deviceName: $deviceName, deviceType: $deviceType, networkId: $networkId)';
+  }
+
+  /// Get device type icon
+  IconData getDeviceIcon() {
+    switch (deviceType.toLowerCase()) {
+      case 'phone':
+        return Icons.phone_android;
+      case 'tablet':
+        return Icons.tablet;
+      case 'tv':
+        return Icons.tv;
+      case 'smartvision':
+        return Icons.visibility;
+      case 'car':
+        return Icons.directions_car;
+      default:
+        return Icons.devices;
+    }
+  }
+
+  /// Get localized device type name
+  String getDeviceTypeName() {
+    switch (deviceType.toLowerCase()) {
+      case 'phone':
+        return 'Phone';
+      case 'tablet':
+        return 'Tablet';
+      case 'tv':
+        return 'TV';
+      case 'smartvision':
+        return 'Smart Vision';
+      case 'car':
+        return 'Car';
+      default:
+        return deviceType;
     }
   }
 }
