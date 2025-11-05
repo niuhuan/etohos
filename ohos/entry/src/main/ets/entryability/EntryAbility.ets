@@ -13,6 +13,9 @@ import { resourceManager } from '@kit.LocalizationKit'
 import { abilityAccessCtrl, bundleManager, common, Permissions } from '@kit.AbilityKit';
 import { i18n } from '@kit.LocalizationKit';
 import { geoLocationManager } from "@kit.LocationKit";
+import { statusBarManager } from '@kit.StatusBarExtensionKit';
+import { image } from '@kit.ImageKit';
+import { display, window } from '@kit.ArkUI'
 
 let vpnWant: Want = {
   deviceId: "",
@@ -55,11 +58,18 @@ export default class EntryAbility extends FlutterAbility {
     try {
       let value = this.context.resourceManager.getDeviceCapabilitySync();
       let deviceType = value.deviceType;
-      if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
+
+      if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
+        resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
+        this.addToStatusBar(
+          this.context,
+        );
+      } else {
         let atManager = abilityAccessCtrl.createAtManager();
         atManager.requestPermissionsFromUser(
           this.context,
-          ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION', 'ohos.permission.LOCATION_IN_BACKGROUND'])
+          ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION',
+            'ohos.permission.LOCATION_IN_BACKGROUND'])
           .then((data) => {
             hilog.info(0x0000, 'testTag', `data: ${JSON.stringify(data)}`);
           })
@@ -69,6 +79,92 @@ export default class EntryAbility extends FlutterAbility {
       }
     } catch (err) {
       hilog.error(0x0000, 'testTag', `catch err->${JSON.stringify(err)}`);
+    }
+  }
+
+  /**
+   * 可以通过自定义组件的内置方法获取Context信息
+   * 具体方法：this.getUIContext().getHostContext();
+   */
+  async addToStatusBar(context: Context) {
+    if (!context) {
+      console.error('getHostContext failed');
+      return;
+    }
+
+    // 获取resourceManager资源管理器
+    const resourceMgr: resourceManager.ResourceManager = context.resourceManager;
+
+    // 创建white pixelMap，需在资源rawfile文件夹中预置testWhite.png图片，图片大小为24vp * 24vp
+    const whiteFileData = resourceMgr.getRawFileContentSync('white.png');
+    const whiteBuffer = whiteFileData.buffer;
+    const whiteImageSource = image.createImageSource(whiteBuffer);
+    let whitePixelMap = await whiteImageSource.createPixelMap();
+
+    // 创建black pixelMap，需在资源rawfile文件夹中预置testBlack.png图片，图片大小为24vp * 24vp
+    const blackFileData = resourceMgr.getRawFileContentSync('black.png');
+    const blackBuffer = blackFileData.buffer;
+    const blackImageSource = image.createImageSource(blackBuffer);
+    let blackPixelMap = await blackImageSource.createPixelMap();
+
+    // 构建图标信息
+    let icon: statusBarManager.StatusBarIcon = {
+      white: whitePixelMap,
+      black: blackPixelMap
+    }
+    // 构建左键业务弹窗信息
+    let operation: statusBarManager.QuickOperation = {
+      abilityName: "",
+      title: "测试Demo",
+      height: 300,
+      // 可缺省
+      moduleName: 'entry'
+    };
+
+    // 构建添加到状态栏的图标详细信息
+    let item: statusBarManager.StatusBarItem = {
+      icons: icon,
+      quickOperation: operation,
+      statusBarGroupMenu: []
+    };
+
+    try {
+      statusBarManager.addToStatusBar(context, item);
+    } catch (error) {
+      console.error(`addToStatusBar failed. error code: ${error.code}, error message: ${error.message}`);
+    }
+
+    statusBarManager.on(
+      "statusBarIconClick",
+      () => {
+        this.context.showAbility();
+      },
+    )
+  }
+
+  onWindowStageCreate(windowStage: window.WindowStage) {
+    super.onWindowStageCreate(windowStage);
+    console.info('onWindowStageCreate');
+    let value = this.context.resourceManager.getDeviceCapabilitySync();
+    let deviceType = value.deviceType;
+
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
+      resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
+      const callback = () => {
+        // ...
+        return new Promise<boolean>((resolve, reject) => {
+          // 是否关闭该窗口
+          this.context.hideAbility();
+          let result: boolean = true;
+          resolve(result);
+        });
+      }
+      try {
+        let windowClass = windowStage.getMainWindowSync();
+        windowClass.on('windowWillClose', callback);
+      } catch (exception) {
+        console.error(`Failed to register callback. Cause code: ${exception.code}, message: ${exception.message}`);
+      }
     }
   }
 
@@ -272,7 +368,8 @@ mtu = 1500
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
     let bgMod: string[] = [];
-    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType) {
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
+      resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
       bgMod = [
         "dataTransfer",
         "taskKeeping"
@@ -282,9 +379,7 @@ mtu = 1500
         "dataTransfer",
         "location"
       ];
-    }
 
-    if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
       try {
         let request: geoLocationManager.ContinuousLocationRequest =
           { 'interval': 5, 'locationScenario': geoLocationManager.UserActivityScenario.NAVIGATION };
@@ -293,6 +388,7 @@ mtu = 1500
         hilog.error(0x0000, 'testTag', `catch err->${e}`);
       }
     }
+
     backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
       let needSetTun = true;
       time_id = setInterval(() => {
@@ -360,9 +456,12 @@ mtu = 1500
     isConnected = false;
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
-    if (resourceManager.DeviceType.DEVICE_TYPE_PC != deviceType) {
+    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
+      resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
+      //
+    } else {
       try {
-         geoLocationManager.off('locationChange', this.mock_loc);
+        geoLocationManager.off('locationChange', this.mock_loc);
       } catch (e) {
         hilog.error(0x0000, 'testTag', `catch err->${e}`);
       }
