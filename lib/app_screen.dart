@@ -8,6 +8,7 @@ import 'package:etohos/app_data.dart';
 import 'package:etohos/network_status.dart';
 import 'package:etohos/log_viewer.dart';
 import 'package:etohos/manual_screen.dart';
+import 'package:etohos/guide_screen.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/utils/logger.dart';
 import 'package:flutter/material.dart';
@@ -483,7 +484,7 @@ class _AppScreenState extends State<AppScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        config.hostname,
+                        config.networkName,
                         style: TextStyle(
                           fontSize: 13,
                           color: subtitleColor,
@@ -663,55 +664,41 @@ class _AppScreenState extends State<AppScreen> {
         ),
         // 移除渐变色，使用主题定义的backgroundColor
         actions: [
-          // 更多菜单按钮
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: t('more'),
-            onSelected: (value) {
-              if (value == 'events') {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const LogViewer(),
-                  ),
-                );
-              } else if (value == 'manual') {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ManualScreen(),
-                  ),
-                );
-              }
+          // 事件按钮
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const LogViewer(),
+                ),
+              );
             },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'events',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.event_note,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(t('events')),
-                  ],
+            icon: const Icon(Icons.history),
+            tooltip: t('events'),
+          ),
+          // 指南按钮
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const GuideScreen(),
                 ),
-              ),
-              PopupMenuItem<String>(
-                value: 'manual',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.menu_book,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(t('manual')),
-                  ],
+              );
+            },
+            icon: const Icon(Icons.school),
+            tooltip: t('guide'),
+          ),
+          // 关于按钮
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ManualScreen(),
                 ),
-              ),
-            ],
+              );
+            },
+            icon: const Icon(Icons.info),
+            tooltip: t('about'),
           ),
           // 设置按钮
           IconButton(
@@ -772,28 +759,28 @@ class _AppScreenState extends State<AppScreen> {
           ),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: (AppData.configs.isEmpty || _isConnecting)
-      //       ? null
-      //       : _toggleConnection,
-      //   tooltip: _isConnecting
-      //       ? t('switching_config')
-      //       : (AppData.connected ? t('disconnect_vpn') : t('connect_vpn')),
-      //   backgroundColor: _isConnecting
-      //       ? Colors.grey
-      //       : (AppData.connected ? Colors.red : Colors.green),
-      //   foregroundColor: Colors.white,
-      //   child: _isConnecting
-      //       ? const SizedBox(
-      //           width: 20,
-      //           height: 20,
-      //           child: CircularProgressIndicator(
-      //             strokeWidth: 2,
-      //             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-      //           ),
-      //         )
-      //       : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (AppData.configs.isEmpty || _isConnecting)
+            ? null
+            : _toggleConnection,
+        tooltip: _isConnecting
+            ? t('switching_config')
+            : (AppData.connected ? t('disconnect_vpn') : t('connect_vpn')),
+        backgroundColor: _isConnecting
+            ? Colors.grey
+            : (AppData.connected ? Colors.red : Colors.green),
+        foregroundColor: Colors.white,
+        child: _isConnecting
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
+      ),
     );
   }
 }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/methods.dart';
 
-class ManualScreen extends StatelessWidget {
-  const ManualScreen({super.key});
+class GuideScreen extends StatelessWidget {
+  const GuideScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +19,10 @@ class ManualScreen extends StatelessWidget {
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.info, size: 20),
+              child: const Icon(Icons.school, size: 20),
             ),
             const SizedBox(width: 12),
-            Text(t('about')),
+            Text(t('guide')),
           ],
         ),
       ),
@@ -61,24 +60,24 @@ class ManualScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const Icon(
-                      Icons.vpn_key,
+                      Icons.settings,
                       size: 48,
                       color: Colors.white,
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'EasyTier OHOS',
-                      style: TextStyle(
-                        fontSize: 28,
+                      t('configuration_guide'),
+                      style: const TextStyle(
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      t('manual_subtitle'),
+                      t('configuration_guide_subtitle'),
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
                       ),
                       textAlign: TextAlign.center,
@@ -89,137 +88,134 @@ class ManualScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // 核心特性
-            _buildFeatureCard(
+            // 基本设置
+            _buildSectionHeader(context, t('basic_settings'), Icons.info_outline),
+            const SizedBox(height: 12),
+            
+            _buildConfigItem(
               context,
-              icon: Icons.account_tree,
-              title: t('decentralization'),
-              description: t('decentralization_desc'),
+              title: t('instance_name'),
+              description: t('instance_name_guide_desc'),
+              icon: Icons.label,
               color: Colors.blue,
             ),
             
-            _buildFeatureCard(
+            _buildConfigItem(
               context,
-              icon: Icons.lock,
-              title: t('security'),
-              description: t('security_desc'),
+              title: t('hostname'),
+              description: t('hostname_guide_desc'),
+              icon: Icons.computer,
               color: Colors.green,
             ),
             
-            _buildFeatureCard(
+            _buildConfigItem(
               context,
-              icon: Icons.speed,
-              title: t('high_performance'),
-              description: t('high_performance_desc'),
+              title: t('network_name'),
+              description: t('network_name_guide_desc'),
+              icon: Icons.network_check,
               color: Colors.orange,
             ),
             
-            _buildFeatureCard(
+            _buildConfigItem(
               context,
-              icon: Icons.cloud_off,
-              title: t('no_public_ip'),
-              description: t('no_public_ip_desc'),
-              color: Colors.purple,
-            ),
-            
-            _buildFeatureCard(
-              context,
-              icon: Icons.router,
-              title: t('nat_traversal'),
-              description: t('nat_traversal_desc'),
-              color: Colors.teal,
-            ),
-            
-            _buildFeatureCard(
-              context,
-              icon: Icons.network_check,
-              title: t('subnet'),
-              description: t('subnet_desc'),
-              color: Colors.indigo,
-            ),
-            
-            _buildFeatureCard(
-              context,
-              icon: Icons.route,
-              title: t('intelligent_routing'),
-              description: t('intelligent_routing_desc'),
+              title: t('network_secret'),
+              description: t('network_secret_guide_desc'),
+              icon: Icons.lock,
               color: Colors.red,
             ),
             
-            _buildFeatureCard(
+            _buildConfigItem(
               context,
-              icon: Icons.network_wifi,
-              title: t('tcp_support'),
-              description: t('tcp_support_desc'),
-              color: Colors.cyan,
-            ),
-            
-            _buildFeatureCard(
-              context,
-              icon: Icons.swap_horiz,
-              title: t('high_availability'),
-              description: t('high_availability_desc'),
-              color: Colors.amber,
-            ),
-            
-            _buildFeatureCard(
-              context,
+              title: t('ipv4_address'),
+              description: t('ipv4_guide_desc'),
               icon: Icons.dns,
-              title: t('ipv6_support'),
-              description: t('ipv6_support_desc'),
-              color: Colors.deepPurple,
+              color: Colors.purple,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('dhcp'),
+              description: t('dhcp_guide_desc'),
+              icon: Icons.router,
+              color: Colors.teal,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('peers'),
+              description: t('peers_guide_desc'),
+              icon: Icons.group,
+              color: Colors.indigo,
             ),
 
             const SizedBox(height: 24),
 
-            // 网络日志说明
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.list_alt,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            t('network_logs'),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            t('network_logs_desc'),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            // 高级设置
+            _buildSectionHeader(context, t('advanced_settings'), Icons.tune),
+            const SizedBox(height: 12),
+            
+            _buildConfigItem(
+              context,
+              title: t('enable_kcp_proxy'),
+              description: t('enable_kcp_proxy_guide_desc'),
+              icon: Icons.speed,
+              color: Colors.cyan,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('disable_kcp_input'),
+              description: t('disable_kcp_input_guide_desc'),
+              icon: Icons.block,
+              color: Colors.amber,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('enable_quic_proxy'),
+              description: t('enable_quic_proxy_guide_desc'),
+              icon: Icons.flash_on,
+              color: Colors.deepOrange,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('disable_quic_input'),
+              description: t('disable_quic_input_guide_desc'),
+              icon: Icons.block,
+              color: Colors.deepPurple,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('private_mode'),
+              description: t('private_mode_guide_desc'),
+              icon: Icons.security,
+              color: Colors.pink,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('latency_first'),
+              description: t('latency_first_guide_desc'),
+              icon: Icons.speed,
+              color: Colors.lightBlue,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('use_smoltcp'),
+              description: t('use_smoltcp_guide_desc'),
+              icon: Icons.memory,
+              color: Colors.brown,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('no_tun'),
+              description: t('no_tun_guide_desc'),
+              icon: Icons.network_check,
+              color: Colors.grey,
             ),
 
             const SizedBox(height: 24),
@@ -256,14 +252,7 @@ class ManualScreen extends StatelessWidget {
                     _buildLinkButton(
                       context,
                       icon: Icons.language,
-                      label: t('website'),
-                      url: t('website_url'),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildLinkButton(
-                      context,
-                      icon: Icons.help_outline,
-                      label: t('config_guide'),
+                      label: t('full_configuration_docs'),
                       url: t('config_guide_url'),
                     ),
                   ],
@@ -278,11 +267,46 @@ class ManualScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer.withOpacity(0.5),
+            colorScheme.secondaryContainer.withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.primary.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: colorScheme.primary, size: 24),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfigItem(
     BuildContext context, {
-    required IconData icon,
     required String title,
     required String description,
+    required IconData icon,
     required Color color,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -377,14 +401,15 @@ class ManualScreen extends StatelessWidget {
           children: [
             Icon(icon, color: colorScheme.primary, size: 20),
             const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                color: colorScheme.onSurface,
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.onSurface,
+                ),
               ),
             ),
-            const Spacer(),
             Icon(
               Icons.open_in_new,
               size: 16,

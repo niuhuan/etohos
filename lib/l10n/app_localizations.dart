@@ -29,7 +29,7 @@ class AppLocalizations {
   /// 所有文案的映射表
   static const Map<String, Map<String, String>> _localizedValues = {
     // 通用
-    'app_name': {'en': 'EasytierOHOS', 'zh': 'EasytierOHOS'},
+    'app_name': {'en': 'ET', 'zh': 'ET'},
     'save': {'en': 'Save', 'zh': '保存'},
     'cancel': {'en': 'Cancel', 'zh': '取消'},
     'delete': {'en': 'Delete', 'zh': '删除'},
@@ -243,10 +243,36 @@ class AppLocalizations {
     // 更多菜单
     'more': {'en': 'More', 'zh': '更多'},
     'events': {'en': 'Events', 'zh': '事件'},
-    'manual': {'en': 'Manual', 'zh': '手册'},
+    'guide': {'en': 'Guide', 'zh': '指南'},
+    'about': {'en': 'About', 'zh': '关于'},
     'manual_subtitle': {'en': 'A simple, secure, decentralized cross-region networking solution', 'zh': '一个简单、安全、去中心化的异地组网方案'},
     
-    // 手册内容
+    // 指南页面
+    'configuration_guide': {'en': 'Configuration Guide', 'zh': '配置指南'},
+    'configuration_guide_subtitle': {'en': 'Learn how to configure each option', 'zh': '了解每个配置选项的作用'},
+    'basic_settings': {'en': 'Basic Settings', 'zh': '基本设置'},
+    'full_configuration_docs': {'en': 'Full Configuration Documentation', 'zh': '完整配置文档'},
+    'config_guide_url': {'en': 'https://easytier.cn/en/guide/network/configurations.html', 'zh': 'https://easytier.cn/guide/network/configurations.html'},
+    
+    // 配置选项说明
+    'instance_name_guide_desc': {'en': 'Instance name to identify this VPN node on the same machine', 'zh': '实例名称，用于在同一台机器上标识此VPN节点'},
+    'hostname_guide_desc': {'en': 'Hostname used to identify this device', 'zh': '用于标识此设备的主机名'},
+    'network_name_guide_desc': {'en': 'Network name to identify this VPN network', 'zh': '用于标识此VPN网络的网络名称'},
+    'network_secret_guide_desc': {'en': 'Network secret key to verify that this node belongs to the VPN network', 'zh': '网络密钥，用于验证此节点属于VPN网络'},
+    'ipv4_guide_desc': {'en': 'IPv4 address for this VPN node. If empty, the node will only forward packets without creating a TUN device', 'zh': '此VPN节点的IPv4地址。如果为空，则此节点将仅转发数据包，不会创建TUN设备'},
+    'dhcp_guide_desc': {'en': 'Automatically determine and set IP address by EasyTier, starting from 10.0.0.1 by default. Warning: When using DHCP, if IP conflicts occur in the network, the IP will automatically change', 'zh': '由EasyTier自动确定并设置IP地址，默认从10.0.0.1开始。警告：在使用DHCP时，如果网络中出现IP冲突，IP将自动更改'},
+    'peers_guide_desc': {'en': 'Initial peer nodes to connect to', 'zh': '最初要连接的对等节点'},
+    
+    'enable_kcp_proxy_guide_desc': {'en': 'Use KCP proxy for TCP streams to improve latency and throughput on networks with UDP packet loss', 'zh': '使用KCP代理TCP流，提高在UDP丢包网络上的延迟和吞吐量'},
+    'disable_kcp_input_guide_desc': {'en': 'Do not allow other nodes to use KCP proxy TCP streams to this node', 'zh': '不允许其他节点使用KCP代理TCP流到此节点'},
+    'enable_quic_proxy_guide_desc': {'en': 'Use QUIC proxy for TCP streams to improve latency and throughput on networks with UDP packet loss', 'zh': '使用QUIC代理TCP流，提高在UDP丢包网络上的延迟和吞吐量'},
+    'disable_quic_input_guide_desc': {'en': 'Do not allow other nodes to use QUIC proxy TCP streams to this node', 'zh': '不允许其他节点使用QUIC代理TCP流到此节点'},
+    'private_mode_guide_desc': {'en': 'If true, do not allow nodes using different network names and passwords from this network to handshake or relay through this node', 'zh': '如果为true，则不允许使用了与本网络不相同的网络名称和密码的节点通过本节点进行握手或中转'},
+    'latency_first_guide_desc': {'en': 'Latency-first mode, will try to use the lowest latency path to forward traffic, default uses shortest path', 'zh': '延迟优先模式，将尝试使用最低延迟路径转发流量，默认使用最短路径'},
+    'use_smoltcp_guide_desc': {'en': 'Enable smoltcp stack for subnet proxy and KCP proxy', 'zh': '为子网代理和KCP代理启用smoltcp堆栈'},
+    'no_tun_guide_desc': {'en': 'Do not create TUN device, can use subnet proxy to access nodes', 'zh': '不创建TUN设备，可以使用子网代理访问节点'},
+    
+    // 手册内容（关于页面）
     'decentralization': {'en': 'Decentralization', 'zh': '去中心化'},
     'decentralization_desc': {'en': 'Operates without reliance on centralized services; nodes are equal and independent, ensuring high availability and censorship resistance.', 'zh': '运行不依赖任何集中式服务，节点平等且独立，确保系统的高可用性和抗审查性。'},
     
@@ -284,7 +310,6 @@ class AppLocalizations {
     'website': {'en': 'Official Website', 'zh': '官网'},
     'website_url': {'en': 'https://easytier.cn/en/', 'zh': 'https://easytier.cn/'},
     'config_guide': {'en': 'Configuration Guide', 'zh': '配置指南'},
-    'config_guide_url': {'en': 'https://easytier.cn/en/guide/introduction.html', 'zh': 'https://easytier.cn/guide/introduction.html'},
     'failed_to_open_url': {'en': 'Failed to open URL', 'zh': '无法打开链接'},
     
     // 文本选择菜单
