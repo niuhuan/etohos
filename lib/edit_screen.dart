@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:etohos/et_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/methods.dart';
+import 'package:etohos/utils/text_field_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -525,20 +526,20 @@ class _EditScreenState extends State<EditScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // _buildModernButton(
-                  //   context,
-                  //   icon: Icons.devices,
-                  //   label: t('import_nearby'),
-                  //   onPressed: _importFromNearby,
-                  //   isPrimary: false,
-                  // ),
-                  // const SizedBox(width: 12),
+                  _buildModernButton(
+                    context,
+                    icon: Icons.devices,
+                    label: t('import_nearby'),
+                    onPressed: _importFromNearby,
+                    isPrimary: false,
+                  ),
+                  const SizedBox(width: 12),
                   _buildModernButton(
                     context,
                     icon: Icons.qr_code_scanner,
                     label: t('scan_qr'),
                     onPressed: _scanQRCode,
-                    isPrimary: true,
+                    isPrimary: false,
                   ),
                 ],
               ),
@@ -557,6 +558,8 @@ class _EditScreenState extends State<EditScreen> {
                   border: const OutlineInputBorder(),
                 ),
                 readOnly: true,
+                enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 style: TextStyle(color: Colors.grey[600]),
               ),
               const SizedBox(height: 16),
@@ -569,6 +572,8 @@ class _EditScreenState extends State<EditScreen> {
                   hintText: t('enter_instance_name'),
                   border: const OutlineInputBorder(),
                 ),
+                enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return t('instance_name_required');
@@ -586,6 +591,8 @@ class _EditScreenState extends State<EditScreen> {
                   hintText: t('enter_hostname'),
                   border: const OutlineInputBorder(),
                 ),
+                enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return t('hostname_required');
@@ -603,6 +610,8 @@ class _EditScreenState extends State<EditScreen> {
                   hintText: t('enter_network_name'),
                   border: const OutlineInputBorder(),
                 ),
+                enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return t('network_name_required');
@@ -621,6 +630,8 @@ class _EditScreenState extends State<EditScreen> {
                   border: const OutlineInputBorder(),
                 ),
                 obscureText: true,
+                enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 // Network secret is optional, no validation needed
               ),
               const SizedBox(height: 24),
@@ -650,6 +661,8 @@ class _EditScreenState extends State<EditScreen> {
                             hintText: t('peer_url_hint'),
                             border: const OutlineInputBorder(),
                           ),
+                          enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                          contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return null; // Empty is allowed
@@ -681,6 +694,8 @@ class _EditScreenState extends State<EditScreen> {
                   hintText: t('enter_ipv4_optional'),
                   border: const OutlineInputBorder(),
                 ),
+                enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return null; // Empty is allowed

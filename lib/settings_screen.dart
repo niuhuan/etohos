@@ -3,6 +3,7 @@ import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/l10n/locale_provider.dart';
 import 'package:etohos/l10n/theme_provider.dart';
 import 'package:etohos/methods.dart';
+import 'package:etohos/utils/text_field_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -95,6 +96,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               hintText: t('dns_hint'),
               border: const OutlineInputBorder(),
             ),
+            enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+            contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return t('dns_server_required');

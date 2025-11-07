@@ -135,7 +135,7 @@ export default class EntryAbility extends FlutterAbility {
     this.resourceMgr = this.context.resourceManager;
     //
     this.initDmClass();
-    // this.initKVStore();
+    this.initKVStore();
     // 如果是手机则需要开启地理位置
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
@@ -324,6 +324,9 @@ export default class EntryAbility extends FlutterAbility {
           break;
         case 'request_config_from_device':
           result.success(await this.requestConfigFromDevice(call.args));
+          break;
+        case 'launch_url':
+          result.success(await this.launchUrl(call.args));
           break;
         default:
           result.error("-1", `no call`, null);
@@ -737,6 +740,21 @@ mtu = 1500
       return null;
     }
 
+  }
+
+  async launchUrl(url: string): Promise<boolean> {
+    try {
+      await this.context.startAbility({
+        action: 'ohos.want.action.viewData',
+        entities: ['entity.system.browsable'],
+        uri: url,
+      });
+      hilog.info(0x0000, 'launchUrl', 'Launched URL: %{public}s', url);
+      return true;
+    } catch (error) {
+      hilog.error(0x0000, 'launchUrl', 'Failed to launch URL: ' + JSON.stringify(error));
+      return false;
+    }
   }
 }
 

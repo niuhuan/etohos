@@ -5,6 +5,8 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.os.Handler
 import android.os.Looper
+import android.content.Intent
+import android.net.Uri
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "methods"
@@ -96,6 +98,19 @@ class MainActivity: FlutterActivity() {
                 "get_network_history" -> {
                     // 返回网络历史数据
                     result.success(networkHistory)
+                }
+                
+                "launch_url" -> {
+                    // 打开URL
+                    try {
+                        val url = call.arguments as? String ?: ""
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        applicationContext.startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("-1", "Failed to launch URL: ${e.message}", null)
+                    }
                 }
                 
                 else -> {

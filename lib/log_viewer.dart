@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:etohos/utils/logger.dart';
+import 'package:etohos/utils/text_field_utils.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -148,6 +149,8 @@ class _LogViewerState extends State<LogViewer> {
             ),
             child: TextField(
               controller: _searchController,
+              enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+              contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
               decoration: InputDecoration(
                 hintText: t('search_logs'),
                 hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),

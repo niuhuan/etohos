@@ -7,6 +7,7 @@ import 'package:etohos/settings_screen.dart';
 import 'package:etohos/app_data.dart';
 import 'package:etohos/network_status.dart';
 import 'package:etohos/log_viewer.dart';
+import 'package:etohos/manual_screen.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/utils/logger.dart';
 import 'package:flutter/material.dart';
@@ -662,17 +663,55 @@ class _AppScreenState extends State<AppScreen> {
         ),
         // 移除渐变色，使用主题定义的backgroundColor
         actions: [
-          // 日志查看按钮
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LogViewer(),
-                ),
-              );
+          // 更多菜单按钮
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            tooltip: t('more'),
+            onSelected: (value) {
+              if (value == 'events') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const LogViewer(),
+                  ),
+                );
+              } else if (value == 'manual') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ManualScreen(),
+                  ),
+                );
+              }
             },
-            icon: const Icon(Icons.list_alt),
-            tooltip: t('view_logs_tooltip'),
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'events',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.event_note,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(t('events')),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'manual',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.menu_book,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(t('manual')),
+                  ],
+                ),
+              ),
+            ],
           ),
           // 设置按钮
           IconButton(
@@ -733,28 +772,28 @@ class _AppScreenState extends State<AppScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (AppData.configs.isEmpty || _isConnecting)
-            ? null
-            : _toggleConnection,
-        tooltip: _isConnecting
-            ? t('switching_config')
-            : (AppData.connected ? t('disconnect_vpn') : t('connect_vpn')),
-        backgroundColor: _isConnecting
-            ? Colors.grey
-            : (AppData.connected ? Colors.red : Colors.green),
-        foregroundColor: Colors.white,
-        child: _isConnecting
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: (AppData.configs.isEmpty || _isConnecting)
+      //       ? null
+      //       : _toggleConnection,
+      //   tooltip: _isConnecting
+      //       ? t('switching_config')
+      //       : (AppData.connected ? t('disconnect_vpn') : t('connect_vpn')),
+      //   backgroundColor: _isConnecting
+      //       ? Colors.grey
+      //       : (AppData.connected ? Colors.red : Colors.green),
+      //   foregroundColor: Colors.white,
+      //   child: _isConnecting
+      //       ? const SizedBox(
+      //           width: 20,
+      //           height: 20,
+      //           child: CircularProgressIndicator(
+      //             strokeWidth: 2,
+      //             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      //           ),
+      //         )
+      //       : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
+      // ),
     );
   }
 }

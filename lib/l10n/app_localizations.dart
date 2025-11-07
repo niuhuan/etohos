@@ -239,6 +239,59 @@ class AppLocalizations {
     'config_imported_from': {'en': 'Configuration imported from {name}', 'zh': '已从{name}导入配置'},
     'invalid_config_data': {'en': 'Invalid configuration data', 'zh': '配置数据无效'},
     'failed_to_import_config': {'en': 'Failed to import configuration', 'zh': '导入配置失败'},
+    
+    // 更多菜单
+    'more': {'en': 'More', 'zh': '更多'},
+    'events': {'en': 'Events', 'zh': '事件'},
+    'manual': {'en': 'Manual', 'zh': '手册'},
+    'manual_subtitle': {'en': 'A simple, secure, decentralized cross-region networking solution', 'zh': '一个简单、安全、去中心化的异地组网方案'},
+    
+    // 手册内容
+    'decentralization': {'en': 'Decentralization', 'zh': '去中心化'},
+    'decentralization_desc': {'en': 'Operates without reliance on centralized services; nodes are equal and independent, ensuring high availability and censorship resistance.', 'zh': '运行不依赖任何集中式服务，节点平等且独立，确保系统的高可用性和抗审查性。'},
+    
+    'security': {'en': 'Security', 'zh': '安全加密'},
+    'security_desc': {'en': 'Supports encrypted communication using WireGuard protocol and protects relay traffic with AES-GCM encryption. Achieves high-performance, full-link zero-copy transmission.', 'zh': '支持使用 WireGuard 协议进行端到端加密，并对中继流量采用 AES-GCM 保护。实现端到端零拷贝传输，性能可与主流网络软件相媲美。'},
+    
+    'high_performance': {'en': 'High Performance', 'zh': '高性能传输'},
+    'high_performance_desc': {'en': 'Implements full-link zero-copy transmission with performance comparable to mainstream networking software. Supports TCP/UDP/WSS/WG protocols.', 'zh': '实现端到端零拷贝（full-link zero-copy）传输，性能可与主流网络软件相媲美。支持 TCP/UDP/WSS/WG 协议。'},
+    
+    'no_public_ip': {'en': 'Networking Without Public IPs', 'zh': '无公网 IP 网络'},
+    'no_public_ip_desc': {'en': 'Supports network formation using shared public nodes. Refer to the configuration guide for details.', 'zh': '支持通过共享公网节点组网，详情请参见配置指南。'},
+    
+    'nat_traversal': {'en': 'NAT Traversal', 'zh': 'NAT 穿透'},
+    'nat_traversal_desc': {'en': 'Supports UDP-based NAT traversal, ensuring stable connections even in complex network environments. Can connect NAT4-NAT4 networks.', 'zh': '支持基于 UDP 的 NAT 穿透，在复杂网络环境下也能保持连接稳定。可打通 NAT4-NAT4 网络。'},
+    
+    'subnet': {'en': 'Subnet (Point-to-Network)', 'zh': '子网网络'},
+    'subnet_desc': {'en': 'Nodes can expose accessible network segments as proxies to the virtual network, allowing other nodes to access these subnets through the node.', 'zh': '节点可将可访问的网络段作为子网IP暴露到虚拟网络，其他节点可通过该端点访问这些子网。'},
+    
+    'intelligent_routing': {'en': 'Intelligent Routing', 'zh': '智能路由'},
+    'intelligent_routing_desc': {'en': 'Dynamically selects optimal paths based on real-time traffic to reduce latency and increase throughput.', 'zh': '基于实时流量动态选择最优路径，以减少延迟并提升吞吐。'},
+    
+    'tcp_support': {'en': 'TCP Support', 'zh': 'TCP 支持'},
+    'tcp_support_desc': {'en': 'Provides reliable data transmission through concurrent TCP connections when UDP is restricted, optimizing performance.', 'zh': '在 UDP 受限的场景下，提供并发 TCP 连接以保证可靠传输并优化性能。'},
+    
+    'high_availability': {'en': 'High Availability', 'zh': '高可用性'},
+    'high_availability_desc': {'en': 'Supports multi-path transmission and automatically switches to healthy paths upon detecting high packet loss or network errors.', 'zh': '支持多路径传输，检测到高丢包或网络异常时自动切换到健康路径。'},
+    
+    'ipv6_support': {'en': 'IPv6 Support', 'zh': 'IPv6 支持'},
+    'ipv6_support_desc': {'en': 'Fully supports IPv6-based networking, compatible with IPv6 communication.', 'zh': '全面兼容并支持基于 IPv6 的网络通信。'},
+    
+    'network_logs': {'en': 'Network Logs', 'zh': '网络日志'},
+    'network_logs_desc': {'en': 'Monitor network registration logs in real-time to track and analyze network activity.', 'zh': '实时观察网络注册日志，帮助您监控和分析网络活动。'},
+    
+    'related_links': {'en': 'Related Links', 'zh': '相关链接'},
+    'website': {'en': 'Official Website', 'zh': '官网'},
+    'website_url': {'en': 'https://easytier.cn/en/', 'zh': 'https://easytier.cn/'},
+    'config_guide': {'en': 'Configuration Guide', 'zh': '配置指南'},
+    'config_guide_url': {'en': 'https://easytier.cn/en/guide/introduction.html', 'zh': 'https://easytier.cn/guide/introduction.html'},
+    'failed_to_open_url': {'en': 'Failed to open URL', 'zh': '无法打开链接'},
+    
+    // 文本选择菜单
+    'copy': {'en': 'Copy', 'zh': '复制'},
+    'cut': {'en': 'Cut', 'zh': '剪切'},
+    'paste': {'en': 'Paste', 'zh': '粘贴'},
+    'select_all': {'en': 'Select All', 'zh': '全选'},
   };
 }
 

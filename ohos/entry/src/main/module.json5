@@ -48,7 +48,6 @@
       }
     ],
     "requestPermissions": [
-
       {
         "name": "ohos.permission.CAMERA",
         "reason": "$string:scan_code",

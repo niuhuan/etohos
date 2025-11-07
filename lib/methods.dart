@@ -232,6 +232,17 @@ class Methods {
       rethrow;
     }
   }
+
+  /// Launch URL in external browser
+  Future<bool> launchUrl(String url) async {
+    try {
+      final result = await _channel.invokeMethod("launch_url", url);
+      return result == true;
+    } catch (e) {
+      AppLogger.error('Error launching URL', error: e);
+      return false;
+    }
+  }
 }
 
 /// Basic description information of a distributed device
