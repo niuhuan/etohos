@@ -684,6 +684,13 @@ class _AppScreenState extends State<AppScreen> {
   }
 
   Widget _build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+    final isMobileOrTablet = AppData.deviceType == "phone" || AppData.deviceType == "tablet";
+    
+    // 横屏且是手机或平板时，使用分屏布局
+    final useSplitLayout = isLandscape && isMobileOrTablet;
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -752,51 +759,7 @@ class _AppScreenState extends State<AppScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Network Status (only show when connected)
-          const NetworkStatus(),
-
-          // Configurations list
-          Expanded(
-            child: AppData.configs.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.settings,
-                            size: 64, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        Text(
-                          t('no_configs_title'),
-                          style:
-                              const TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          t('no_configs_desc'),
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: AppData.configs.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == AppData.configs.length) {
-                        return SafeArea(child: Container(height: 100));
-                      }
-                      final config = AppData.configs[index];
-                      final isSelected = AppData.selectedConfig?.instanceId ==
-                          config.instanceId;
-
-                      return Watch((context) =>
-                          _buildModernConfigCard(context, config, isSelected));
-                    },
-                  ),
-          ),
-        ],
-      ),
+      body: useSplitLayout ? _buildSplitLayout(context) : _buildNormalLayout(context),
       floatingActionButton: FloatingActionButton(
         onPressed: (AppData.configs.isEmpty || _isConnecting)
             ? null
@@ -819,6 +782,115 @@ class _AppScreenState extends State<AppScreen> {
               )
             : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
       ),
+    );
+  }
+
+  Widget _buildNormalLayout(BuildContext context) {
+    return Column(
+      children: [
+        // Network Status (only show when connected)
+        const NetworkStatus(),
+
+        // Configurations list
+        Expanded(
+          child: AppData.configs.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.settings,
+                          size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(
+                        t('no_configs_title'),
+                        style:
+                            const TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        t('no_configs_desc'),
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: AppData.configs.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == AppData.configs.length) {
+                      return SafeArea(child: Container(height: 100));
+                    }
+                    final config = AppData.configs[index];
+                    final isSelected = AppData.selectedConfig?.instanceId ==
+                        config.instanceId;
+
+                    return Watch((context) =>
+                        _buildModernConfigCard(context, config, isSelected));
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSplitLayout(BuildContext context) {
+    return Row(
+      children: [
+        // 左侧：网络状态
+        Expanded(
+          flex: 1,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(
+                  color: Theme.of(context).dividerColor,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: const NetworkStatus(),
+          ),
+        ),
+        // 右侧：配置列表
+        Expanded(
+          flex: 1,
+          child: AppData.configs.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.settings,
+                          size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(
+                        t('no_configs_title'),
+                        style:
+                            const TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        t('no_configs_desc'),
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: AppData.configs.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == AppData.configs.length) {
+                      return SafeArea(child: Container(height: 100));
+                    }
+                    final config = AppData.configs[index];
+                    final isSelected = AppData.selectedConfig?.instanceId ==
+                        config.instanceId;
+
+                    return Watch((context) =>
+                        _buildModernConfigCard(context, config, isSelected));
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

@@ -243,6 +243,17 @@ class Methods {
       return false;
     }
   }
+
+  /// Get device type ("phone" or "tablet")
+  Future<String> getDeviceType() async {
+    try {
+      final result = await _channel.invokeMethod("get_device_type");
+      return result as String? ?? "phone";
+    } catch (e) {
+      AppLogger.error('Error getting device type', error: e);
+      return "phone"; // Default to phone
+    }
+  }
 }
 
 /// Basic description information of a distributed device
@@ -353,3 +364,4 @@ class ConnectState {
     return isConnected.hashCode ^ runningInst.hashCode;
   }
 }
+

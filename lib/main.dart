@@ -5,12 +5,21 @@ import 'package:etohos/l10n/app_localizations.dart';
 import 'package:etohos/l10n/locale_provider.dart';
 import 'package:etohos/l10n/theme_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:signals/signals_flutter.dart';
 
 import 'app_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // 允许所有方向的旋转
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
   runApp(const MyApp());
 }
 
@@ -65,6 +74,9 @@ class _InitScreenState extends State<InitScreen> {
 
       // Initialize theme
       await initializeTheme();
+
+      // Get device type
+      AppData.deviceType = await methods.getDeviceType();
 
       // Initialize VPN
       await methods.prepareVpn();

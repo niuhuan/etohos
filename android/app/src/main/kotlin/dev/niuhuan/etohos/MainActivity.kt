@@ -113,6 +113,11 @@ class MainActivity: FlutterActivity() {
                     }
                 }
                 
+                "get_device_type" -> {
+                    // Mock: 直接返回phone（仅鸿蒙使用真实实现）
+                    result.success("phone")
+                }
+                
                 else -> {
                     result.notImplemented()
                 }

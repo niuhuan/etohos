@@ -37,6 +37,7 @@
           "taskKeeping",
           "location"
         ],
+        "orientation": "auto_rotation"
       }
     ],
     "extensionAbilities": [

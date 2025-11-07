@@ -328,6 +328,9 @@ export default class EntryAbility extends FlutterAbility {
         case 'launch_url':
           result.success(await this.launchUrl(call.args));
           break;
+        case 'get_device_type':
+          result.success(this.getDeviceType());
+          break;
         default:
           result.error("-1", `no call`, null);
           break;
@@ -754,6 +757,26 @@ mtu = 1500
     } catch (error) {
       hilog.error(0x0000, 'launchUrl', 'Failed to launch URL: ' + JSON.stringify(error));
       return false;
+    }
+  }
+
+  getDeviceType(): string {
+    try {
+      let value = this.context.resourceManager.getDeviceCapabilitySync();
+      let deviceType = value.deviceType;
+      
+      // DEVICE_TYPE_PHONE = 0x00
+      // DEVICE_TYPE_TABLET = 0x11
+      if (resourceManager.DeviceType.DEVICE_TYPE_TABLET == deviceType) {
+        return 'tablet';
+      }
+      if (resourceManager.DeviceType.DEVICE_TYPE_PHONE == deviceType) {
+        return 'phone';
+      }
+      return 'other';
+    } catch (error) {
+      hilog.error(0x0000, 'getDeviceType', 'Failed to get device type: ' + JSON.stringify(error));
+      return 'phone'; // Default to phone
     }
   }
 }

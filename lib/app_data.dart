@@ -17,4 +17,5 @@ class AppData {
       const Settings(dnsList: defaultDnsList);
   static EtConfig? selectedConfig;
   static bool connected = false;
+  static String deviceType = "other"; // Default to phone, initialized in InitScreen
 }
