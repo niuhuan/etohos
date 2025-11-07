@@ -97,6 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               border: const OutlineInputBorder(),
             ),
             enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+            textCapitalization: TextFieldConfig.textCapitalization,
             contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -332,7 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               
               // Language Settings
               Card(
-                elevation: 2,
+                elevation: 1,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

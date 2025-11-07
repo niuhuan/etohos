@@ -150,6 +150,7 @@ class _LogViewerState extends State<LogViewer> {
             child: TextField(
               controller: _searchController,
               enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+              textCapitalization: TextFieldConfig.textCapitalization,
               contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
               decoration: InputDecoration(
                 hintText: t('search_logs'),

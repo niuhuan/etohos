@@ -8,7 +8,7 @@ final ThemeData theme = ThemeData(
     brightness: Brightness.light,
   ),
   cardTheme: CardTheme(
-    elevation: 2,
+    elevation: 1,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
     ),
@@ -16,7 +16,7 @@ final ThemeData theme = ThemeData(
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      elevation: 2,
+      elevation: 1,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -81,7 +81,7 @@ final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
   ),
   cardTheme: CardTheme(
-    elevation: 4,
+    elevation: 2,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
     ),
@@ -89,7 +89,7 @@ final ThemeData darkTheme = ThemeData(
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      elevation: 2,
+      elevation: 1,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -198,9 +198,9 @@ class GlassCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),

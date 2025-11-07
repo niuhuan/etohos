@@ -109,6 +109,9 @@ class TextFieldConfig {
   /// 是否启用交互式选择（允许选择和复制）
   static const bool enableInteractiveSelection = true;
 
+  /// 文本大小写设置（禁用自动大写）
+  static const TextCapitalization textCapitalization = TextCapitalization.none;
+
   /// 上下文菜单构建器
   static Widget Function(BuildContext, EditableTextState) get contextMenuBuilder => buildDefaultContextMenu;
 }

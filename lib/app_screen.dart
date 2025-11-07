@@ -242,11 +242,11 @@ class _AppScreenState extends State<AppScreen> {
 
   void _shareConfig(EtConfig config) async {
     bool isSharing = false;
-    
+
     try {
       // Convert config to JSON string
       final jsonString = jsonEncode(config.toJson());
-      
+
       // Share to kvStore for nearby device import
       try {
         isSharing = await methods.shareConfigToKVStore(jsonString);
@@ -256,10 +256,10 @@ class _AppScreenState extends State<AppScreen> {
       } catch (e) {
         AppLogger.error('Failed to share to kvStore', error: e);
       }
-      
+
       // Generate QR code (returns base64)
       final qrCodeBase64 = await methods.genCode(jsonString);
-      
+
       if (qrCodeBase64.isEmpty) {
         throw Exception('Failed to generate QR code');
       }
@@ -319,7 +319,7 @@ class _AppScreenState extends State<AppScreen> {
           ],
         ),
       );
-      
+
       // After dialog closes, stop sharing
       if (isSharing) {
         try {
@@ -333,7 +333,7 @@ class _AppScreenState extends State<AppScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${t('failed_to_generate_qr')}: $e')),
       );
-      
+
       // Cleanup on error
       if (isSharing) {
         try {
@@ -394,10 +394,10 @@ class _AppScreenState extends State<AppScreen> {
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? colorScheme.primary.withOpacity(0.3)
-                : Colors.black.withOpacity(isDark ? 0.3 : 0.08),
-            blurRadius: isSelected ? 12 : 8,
-            offset: Offset(0, isSelected ? 4 : 2),
+                ? colorScheme.primary.withOpacity(0.2)
+                : Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            blurRadius: isSelected ? 8 : 4,
+            offset: Offset(0, isSelected ? 3 : 2),
           ),
         ],
       ),
@@ -431,143 +431,110 @@ class _AppScreenState extends State<AppScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-// 图标
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? (isDark
-                            ? const Color(0xFF334155)
-                            : colorScheme.primary) // 暗色主题用深灰蓝
-                        : (isDark
-                            ? colorScheme.surface
-                            : colorScheme.surfaceVariant),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: (isDark
-                                  ? const Color(0xFF334155).withOpacity(0.3)
-                                  : colorScheme.primary.withOpacity(0.3)),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Icon(
-                    isSelected ? Icons.check_circle : Icons.router_outlined,
-                    color: isSelected
-                        ? (isDark
-                            ? const Color(0xFF94A3B8)
-                            : Colors.white) // 暗色主题用柔和的灰蓝
-                        : colorScheme.primary,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-
-// 标题和hostname
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        config.instanceName,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+// 图标
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (isDark
+                                      ? const Color(0xFF334155)
+                                      : colorScheme.primary) // 暗色主题用深灰蓝
+                                  : (isDark
+                                      ? colorScheme.surface
+                                      : colorScheme.surfaceVariant),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: (isDark
+                                            ? const Color(0xFF334155)
+                                                .withOpacity(0.3)
+                                            : colorScheme.primary
+                                                .withOpacity(0.3)),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Icon(
+                              isSelected
+                                  ? Icons.check_circle
+                                  : Icons.router_outlined,
+                              color: isSelected
+                                  ? (isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : Colors.white) // 暗色主题用柔和的灰蓝
+                                  : colorScheme.primary,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+// 标题和hostname
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  config.instanceName,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: textColor,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  config.networkName,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: subtitleColor,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        config.networkName,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: subtitleColor,
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "DHCP:${config.dhcp? '✓' : '✗'}"
+                          + " | "
+                          + "KCP:${config.enableKcpProxy? '✓' : '✗'}"
+                          + "\n"
+                          + "QUIC:${config.enableQuicProxy? '✓' : '✗'}"
+                          + " | "
+                          + "Private:${config.privateMode? '✓' : '✗'}"
+                          ,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: subtitleColor.withOpacity(0.6),
+                            fontFamily: 'monospace',
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-// 右上角：节点数量或连接状态
-                    if (AppData.connected && isSelected)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.green, width: 1),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              t('connected'),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-// 节点数量
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: (isDark
-                                  ? colorScheme.surface
-                                  : colorScheme.surfaceVariant)
-                              .withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.group_outlined,
-                              size: 14,
-                              color: subtitleColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${config.peers.length}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: subtitleColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-// 底部：操作按钮（右对齐）
                     Row(
                       children: [
 // 分享二维码按钮
@@ -583,6 +550,77 @@ class _AppScreenState extends State<AppScreen> {
                           constraints: const BoxConstraints(),
                         ),
                         const SizedBox(width: 4),
+// 右上角：节点数量或连接状态
+                        if (AppData.connected && isSelected)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.green, width: 1),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  t('connected'),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+// 节点数量
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: (isDark
+                                      ? colorScheme.surface
+                                      : colorScheme.surfaceVariant)
+                                  .withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.lan,
+                                  size: 14,
+                                  color: subtitleColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${config.peers.length}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: subtitleColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+
+// 底部：操作按钮（右对齐）
+                    Row(
+                      children: [
 // 删除按钮
                         IconButton(
                           onPressed: (AppData.connected && isSelected)
@@ -752,8 +790,8 @@ class _AppScreenState extends State<AppScreen> {
                       final isSelected = AppData.selectedConfig?.instanceId ==
                           config.instanceId;
 
-                      return Watch((context) => _buildModernConfigCard(
-                          context, config, isSelected));
+                      return Watch((context) =>
+                          _buildModernConfigCard(context, config, isSelected));
                     },
                   ),
           ),

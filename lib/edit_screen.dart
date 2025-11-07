@@ -559,6 +559,7 @@ class _EditScreenState extends State<EditScreen> {
                 ),
                 readOnly: true,
                 enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                textCapitalization: TextFieldConfig.textCapitalization,
                 contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 style: TextStyle(color: Colors.grey[600]),
               ),
@@ -573,6 +574,7 @@ class _EditScreenState extends State<EditScreen> {
                   border: const OutlineInputBorder(),
                 ),
                 enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                textCapitalization: TextFieldConfig.textCapitalization,
                 contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -592,6 +594,7 @@ class _EditScreenState extends State<EditScreen> {
                   border: const OutlineInputBorder(),
                 ),
                 enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                textCapitalization: TextFieldConfig.textCapitalization,
                 contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -611,6 +614,7 @@ class _EditScreenState extends State<EditScreen> {
                   border: const OutlineInputBorder(),
                 ),
                 enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                textCapitalization: TextFieldConfig.textCapitalization,
                 contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -631,6 +635,7 @@ class _EditScreenState extends State<EditScreen> {
                 ),
                 obscureText: true,
                 enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                textCapitalization: TextFieldConfig.textCapitalization,
                 contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 // Network secret is optional, no validation needed
               ),
@@ -662,6 +667,7 @@ class _EditScreenState extends State<EditScreen> {
                             border: const OutlineInputBorder(),
                           ),
                           enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                          textCapitalization: TextFieldConfig.textCapitalization,
                           contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -695,6 +701,7 @@ class _EditScreenState extends State<EditScreen> {
                   border: const OutlineInputBorder(),
                 ),
                 enableInteractiveSelection: TextFieldConfig.enableInteractiveSelection,
+                textCapitalization: TextFieldConfig.textCapitalization,
                 contextMenuBuilder: TextFieldConfig.contextMenuBuilder,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
