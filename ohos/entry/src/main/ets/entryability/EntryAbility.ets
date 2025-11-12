@@ -8,7 +8,7 @@ import { backgroundTaskManager } from '@kit.BackgroundTasksKit';
 import { BusinessError, deviceInfo } from "@kit.BasicServicesKit";
 import { promptAction } from '@kit.ArkUI';
 import { JSON, util } from '@kit.ArkTS';
-import { NetworkInstanceRunningInfo } from './PeerInfo';
+import { NetworkInstanceRunningInfo, PeerInfo, Route } from './PeerInfo';
 import { resourceManager } from '@kit.LocalizationKit'
 import { abilityAccessCtrl, bundleManager, common, Permissions } from '@kit.AbilityKit';
 import { i18n } from '@kit.LocalizationKit';
@@ -49,6 +49,8 @@ interface NetworkData {
   txBytes: number;
   ip: string;
   hostname: string;
+  peers: PeerInfo[];
+  routes: Route[];
 }
 
 export default class EntryAbility extends FlutterAbility {
@@ -608,12 +610,17 @@ mtu = 1500
 
       // Only record if we have previous data (not the first record)
       if (lastTotalRx > 0 && lastTotalTx > 0) {
+        // Extract routes from peer_route_pairs
+        let routes: Route[] = infos.peer_route_pairs.map((pair) => pair.route);
+        
         let networkData: NetworkData = {
           timestamp: Date.now(),
           rxBytes: rxDelta,
           txBytes: txDelta,
           ip: ip,
-          hostname: hostname
+          hostname: hostname,
+          peers: infos.peers,
+          routes: routes
         };
 
         networkHistory.push(networkData);

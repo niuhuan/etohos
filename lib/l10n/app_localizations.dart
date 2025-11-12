@@ -97,6 +97,14 @@ class AppLocalizations {
     'rx_speed': {'en': 'RX', 'zh': 'RX'},
     'tx_speed': {'en': 'TX', 'zh': 'TX'},
     'no_network_data': {'en': 'No network data available', 'zh': '暂无网络数据'},
+    'peer_info': {'en': 'Peer Information', 'zh': '节点信息'},
+    'no_peers': {'en': 'No peers connected', 'zh': '暂无连接的节点'},
+    'peer': {'en': 'Peer', 'zh': '节点'},
+    'connections': {'en': 'Connections', 'zh': '连接'},
+    'routes': {'en': 'Routes', 'zh': '路由'},
+    'route_info': {'en': 'Route Information', 'zh': '路由信息'},
+    'no_routes': {'en': 'No routes available', 'zh': '暂无路由'},
+    'cost': {'en': 'Cost', 'zh': '成本'},
     
     // 事件查看器
     'log_viewer': {'en': 'Event Manager', 'zh': '事件管理器'},

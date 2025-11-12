@@ -162,6 +162,7 @@ class Methods {
     }
   }
 
+
   Future<String> scanCode() async {
     try {
       final result = await _channel.invokeMethod("scan_code");
