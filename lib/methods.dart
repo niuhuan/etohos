@@ -254,6 +254,15 @@ class Methods {
       return "phone"; // Default to phone
     }
   }
+
+  /// Exit the application
+  Future<void> exitApp() async {
+    try {
+      await _channel.invokeMethod("exit_app");
+    } catch (e) {
+      AppLogger.error('Error exiting app', error: e);
+    }
+  }
 }
 
 /// Basic description information of a distributed device

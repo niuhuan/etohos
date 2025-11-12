@@ -331,6 +331,10 @@ export default class EntryAbility extends FlutterAbility {
         case 'get_device_type':
           result.success(this.getDeviceType());
           break;
+        case 'exit_app':
+          this.exitApp();
+          result.success("");
+          break;
         default:
           result.error("-1", `no call`, null);
           break;
@@ -777,6 +781,15 @@ mtu = 1500
     } catch (error) {
       hilog.error(0x0000, 'getDeviceType', 'Failed to get device type: ' + JSON.stringify(error));
       return 'phone'; // Default to phone
+    }
+  }
+
+  exitApp(): void {
+    try {
+      this.context.terminateSelf();
+      hilog.info(0x0000, 'exitApp', 'Application terminated');
+    } catch (error) {
+      hilog.error(0x0000, 'exitApp', 'Failed to exit app: ' + JSON.stringify(error));
     }
   }
 }

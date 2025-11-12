@@ -243,13 +243,37 @@ class AppLocalizations {
     // 更多菜单
     'more': {'en': 'More', 'zh': '更多'},
     'events': {'en': 'Events', 'zh': '事件'},
-    'guide': {'en': 'Guide', 'zh': '指南'},
+    'guide': {'en': 'Guide and Knowledge', 'zh': '指南与知识'},
+    'guide_and_knowledge': {'en': 'Guide and Knowledge', 'zh': '指南与知识'},
     'about': {'en': 'About', 'zh': '关于'},
     'manual_subtitle': {'en': 'A simple, secure, decentralized cross-region networking solution', 'zh': '一个简单、安全、去中心化的异地组网方案'},
     
     // 指南页面
     'configuration_guide': {'en': 'Configuration Guide', 'zh': '配置指南'},
     'configuration_guide_subtitle': {'en': 'Learn how to configure each option', 'zh': '了解每个配置选项的作用'},
+    
+    // VPN 和组网知识
+    'vpn_and_networking_knowledge': {'en': 'VPN and Networking Knowledge', 'zh': 'VPN 与组网知识'},
+    'what_is_vpn': {'en': 'What is VPN?', 'zh': '什么是 VPN？'},
+    'what_is_vpn_desc': {'en': 'VPN (Virtual Private Network) is a technology that creates a secure, encrypted connection over a public network (such as the Internet). It allows users to access private networks remotely and securely, protecting data transmission from eavesdropping and tampering.', 'zh': 'VPN（虚拟专用网络）是一种在公共网络（如互联网）上创建安全、加密连接的技术。它允许用户远程、安全地访问专用网络，保护数据传输免受窃听和篡改。'},
+    'what_is_networking': {'en': 'What is Networking?', 'zh': '什么是组网？'},
+    'what_is_networking_desc': {'en': 'Networking refers to connecting multiple devices or networks together to form a unified network. In the context of VPN, it means creating a virtual network that connects devices in different locations, allowing them to communicate as if they were on the same local network.', 'zh': '组网是指将多个设备或网络连接在一起，形成一个统一的网络。在 VPN 的语境下，它意味着创建一个虚拟网络，连接不同位置的设备，使它们能够像在同一局域网内一样通信。'},
+    'how_vpn_works': {'en': 'How VPN Works', 'zh': 'VPN 工作原理'},
+    'how_vpn_works_desc': {'en': 'VPN works by creating an encrypted tunnel between your device and a VPN server. All data transmitted through this tunnel is encrypted, ensuring privacy and security. The VPN server acts as an intermediary, making your actual IP address invisible to external parties.', 'zh': 'VPN 通过在您的设备和 VPN 服务器之间创建加密隧道来工作。通过此隧道传输的所有数据都经过加密，确保隐私和安全。VPN 服务器充当中间人，使您的真实 IP 地址对外部不可见。'},
+    'networking_benefits': {'en': 'Benefits of Networking', 'zh': '组网的优势'},
+    'networking_benefits_desc': {'en': 'Networking allows devices in different locations to communicate securely, enables remote access to resources, supports distributed collaboration, and provides a unified network environment without physical constraints.', 'zh': '组网允许不同位置的设备安全通信，支持远程访问资源，支持分布式协作，并提供不受物理限制的统一网络环境。'},
+    'vpn_security': {'en': 'VPN Security', 'zh': 'VPN 安全性'},
+    'vpn_security_desc': {'en': 'VPN uses encryption protocols (such as WireGuard, OpenVPN) to protect data. It prevents man-in-the-middle attacks, data interception, and ensures that even if data is intercepted, it cannot be read without the encryption key.', 'zh': 'VPN 使用加密协议（如 WireGuard、OpenVPN）来保护数据。它可以防止中间人攻击、数据拦截，并确保即使数据被拦截，没有加密密钥也无法读取。'},
+    'decentralized_networking': {'en': 'Decentralized Networking', 'zh': '去中心化组网'},
+    'decentralized_networking_desc': {'en': 'Decentralized networking means that there is no central server controlling the network. Each node is equal and independent, which improves network reliability, reduces single points of failure, and enhances privacy protection.', 'zh': '去中心化组网意味着没有中央服务器控制网络。每个节点都是平等和独立的，这提高了网络可靠性，减少了单点故障，并增强了隐私保护。'},
+    'what_is_ipv6': {'en': 'What is IPv6?', 'zh': '什么是 IPv6？'},
+    'what_is_ipv6_desc': {'en': 'IPv6 (Internet Protocol version 6) is the latest version of the Internet Protocol, designed to replace IPv4. IPv6 uses 128-bit addresses, providing a vastly larger address space (2^128 addresses) compared to IPv4\'s 32-bit addresses. This solves the IPv4 address exhaustion problem and supports the growing number of internet-connected devices.', 'zh': 'IPv6（互联网协议第6版）是互联网协议的最新版本，旨在替代 IPv4。IPv6 使用 128 位地址，相比 IPv4 的 32 位地址提供了更大的地址空间（2^128 个地址）。这解决了 IPv4 地址耗尽的问题，并支持不断增长的互联网连接设备。'},
+    'ipv6_benefits': {'en': 'IPv6 Benefits', 'zh': 'IPv6 的优势'},
+    'ipv6_benefits_desc': {'en': 'IPv6 provides a much larger address space, simplified header format for better routing efficiency, built-in security features (IPsec), better support for mobile devices, and improved multicast capabilities. It is essential for the future growth of the Internet.', 'zh': 'IPv6 提供了更大的地址空间、简化的报头格式以提高路由效率、内置安全功能（IPsec）、更好的移动设备支持以及改进的多播功能。它对于互联网的未来发展至关重要。'},
+    'what_is_dhcp': {'en': 'What is DHCP?', 'zh': '什么是 DHCP？'},
+    'what_is_dhcp_desc': {'en': 'DHCP (Dynamic Host Configuration Protocol) is a network management protocol used to automatically assign IP addresses and other network configuration parameters to devices on a network. Instead of manually configuring each device, DHCP allows devices to automatically obtain their network settings from a DHCP server.', 'zh': 'DHCP（动态主机配置协议）是一种网络管理协议，用于自动为网络上的设备分配 IP 地址和其他网络配置参数。无需手动配置每个设备，DHCP 允许设备自动从 DHCP 服务器获取其网络设置。'},
+    'dhcp_benefits': {'en': 'DHCP Benefits', 'zh': 'DHCP 的优势'},
+    'dhcp_benefits_desc': {'en': 'DHCP simplifies network administration by automatically managing IP address allocation, reduces configuration errors, allows for centralized network management, supports dynamic IP address assignment, and makes it easier to add or remove devices from the network without manual configuration.', 'zh': 'DHCP 通过自动管理 IP 地址分配简化了网络管理，减少了配置错误，支持集中式网络管理，支持动态 IP 地址分配，并使添加或移除网络设备变得更加容易，无需手动配置。'},
     'basic_settings': {'en': 'Basic Settings', 'zh': '基本设置'},
     'full_configuration_docs': {'en': 'Full Configuration Documentation', 'zh': '完整配置文档'},
     'config_guide_url': {'en': 'https://easytier.cn/en/guide/network/configurations.html', 'zh': 'https://easytier.cn/guide/network/configurations.html'},
@@ -317,6 +341,21 @@ class AppLocalizations {
     'cut': {'en': 'Cut', 'zh': '剪切'},
     'paste': {'en': 'Paste', 'zh': '粘贴'},
     'select_all': {'en': 'Select All', 'zh': '全选'},
+    
+    // 隐私政策
+    'privacy_policy': {'en': 'Privacy Policy', 'zh': '隐私政策'},
+    'privacy_policy_title': {'en': 'Privacy Policy Agreement', 'zh': '隐私政策协议'},
+    'privacy_policy_content': {'en': 'We value your privacy and data protection. Please read and agree to our Privacy Policy to continue using the app.', 'zh': '我们非常重视您的隐私和数据保护。请阅读并同意我们的隐私政策以继续使用本应用。'},
+    'privacy_policy_read': {'en': 'I have read and agree to the Privacy Policy', 'zh': '我已阅读并同意隐私政策'},
+    'agree': {'en': 'Agree', 'zh': '同意'},
+    'disagree': {'en': 'Disagree', 'zh': '不同意'},
+    'disagree_and_exit': {'en': 'Disagree and Exit', 'zh': '不同意并退出'},
+    'privacy_policy_required': {'en': 'You must agree to the Privacy Policy to use this app', 'zh': '您必须同意隐私政策才能使用本应用'},
+    'revoke_privacy_consent': {'en': 'Revoke Privacy Consent', 'zh': '撤销隐私同意'},
+    'revoke_privacy_consent_desc': {'en': 'Revoking privacy consent will require you to exit the app. You will need to agree to the Privacy Policy again when you restart the app.', 'zh': '撤销隐私同意后需要退出应用。重新启动应用时需要再次同意隐私政策。'},
+    'revoke_consent': {'en': 'Revoke Consent', 'zh': '撤销同意'},
+    'revoke_consent_confirm': {'en': 'Are you sure you want to revoke your privacy consent? The app will exit.', 'zh': '确定要撤销隐私同意吗？应用将退出。'},
+    'revoke_and_exit': {'en': 'Revoke and Exit', 'zh': '撤销并退出'},
   };
 }
 

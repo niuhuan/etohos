@@ -88,6 +88,92 @@ class GuideScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
+             // VPN 和组网知识
+            _buildSectionHeader(context, t('vpn_and_networking_knowledge'), Icons.lightbulb_outline),
+            const SizedBox(height: 12),
+            
+            _buildConfigItem(
+              context,
+              title: t('what_is_vpn'),
+              description: t('what_is_vpn_desc'),
+              icon: Icons.vpn_key,
+              color: Colors.blue,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('what_is_networking'),
+              description: t('what_is_networking_desc'),
+              icon: Icons.devices,
+              color: Colors.green,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('how_vpn_works'),
+              description: t('how_vpn_works_desc'),
+              icon: Icons.settings_ethernet,
+              color: Colors.orange,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('networking_benefits'),
+              description: t('networking_benefits_desc'),
+              icon: Icons.star,
+              color: Colors.purple,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('vpn_security'),
+              description: t('vpn_security_desc'),
+              icon: Icons.lock,
+              color: Colors.red,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('decentralized_networking'),
+              description: t('decentralized_networking_desc'),
+              icon: Icons.account_tree,
+              color: Colors.teal,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('what_is_ipv6'),
+              description: t('what_is_ipv6_desc'),
+              icon: Icons.dns,
+              color: Colors.indigo,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('ipv6_benefits'),
+              description: t('ipv6_benefits_desc'),
+              icon: Icons.trending_up,
+              color: Colors.deepPurple,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('what_is_dhcp'),
+              description: t('what_is_dhcp_desc'),
+              icon: Icons.router,
+              color: Colors.cyan,
+            ),
+            
+            _buildConfigItem(
+              context,
+              title: t('dhcp_benefits'),
+              description: t('dhcp_benefits_desc'),
+              icon: Icons.auto_awesome,
+              color: Colors.lightGreen,
+            ),
+
+            const SizedBox(height: 24),
+
             // 基本设置
             _buildSectionHeader(context, t('basic_settings'), Icons.info_outline),
             const SizedBox(height: 12),

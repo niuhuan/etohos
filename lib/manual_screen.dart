@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/methods.dart';
+import 'package:etohos/privacy_config.dart';
 
 class ManualScreen extends StatelessWidget {
   const ManualScreen({super.key});
@@ -266,6 +267,16 @@ class ManualScreen extends StatelessWidget {
                       label: t('config_guide'),
                       url: t('config_guide_url'),
                     ),
+                    // 隐私政策链接（仅在 flag 为 true 时显示）
+                    if (enablePrivacyPolicy) ...[
+                      const SizedBox(height: 8),
+                      _buildLinkButton(
+                        context,
+                        icon: Icons.privacy_tip,
+                        label: t('privacy_policy'),
+                        url: privacyPolicyUrl,
+                      ),
+                    ],
                   ],
                 ),
               ),

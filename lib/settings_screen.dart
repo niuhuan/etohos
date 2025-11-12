@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:etohos/settings.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/l10n/locale_provider.dart';
 import 'package:etohos/l10n/theme_provider.dart';
 import 'package:etohos/methods.dart';
 import 'package:etohos/utils/text_field_utils.dart';
+import 'package:etohos/privacy_config.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -473,11 +475,136 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               
+              // 隐私政策撤销同意（仅在 flag 为 true 时显示）
+              if (enablePrivacyPolicy) ...[
+                const SizedBox(height: 32),
+                Text(
+                  t('privacy_policy'),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.privacy_tip,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    title: Text(
+                      t('revoke_privacy_consent'),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(t('revoke_privacy_consent_desc')),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => _showRevokeConsentDialog(),
+                  ),
+                ),
+              ],
+              
               const SizedBox(height: 32),
             ],
           ),
         ),
       );
+  }
+  
+  void _showRevokeConsentDialog() {
+    final colorScheme = Theme.of(context).colorScheme;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.privacy_tip, color: colorScheme.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                t('revoke_privacy_consent'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                t('revoke_consent_confirm'),
+                style: const TextStyle(fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () async {
+                  try {
+                    await methods.launchUrl(privacyPolicyUrl);
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${t('failed_to_open_url')}: $e')),
+                      );
+                    }
+                  }
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.link, size: 16, color: colorScheme.primary),
+                    const SizedBox(width: 4),
+                    Text(
+                      t('privacy_policy'),
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.open_in_new, size: 14, color: colorScheme.primary),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(t('cancel')),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              // 清除同意状态（删除文件）
+              final dataDir = await methods.dataDir();
+              final acceptedFile = File('$dataDir/$privacyPolicyAcceptedFileName');
+              if (await acceptedFile.exists()) {
+                await acceptedFile.delete();
+              }
+              // 退出应用
+              await methods.exitApp();
+            },
+            child: Text(
+              t('revoke_and_exit'),
+              style: TextStyle(color: colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

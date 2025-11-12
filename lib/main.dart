@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:etohos/methods.dart';
 import 'package:etohos/app_data.dart';
 import 'package:etohos/themes.dart';
 import 'package:etohos/l10n/app_localizations.dart';
 import 'package:etohos/l10n/locale_provider.dart';
 import 'package:etohos/l10n/theme_provider.dart';
+import 'package:etohos/privacy_config.dart';
+import 'package:etohos/privacy_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -68,6 +71,38 @@ class _InitScreenState extends State<InitScreen> {
 
   void _init() async {
     try {
+      // 检查隐私政策同意状态（仅在 flag 为 true 时）
+      if (enablePrivacyPolicy) {
+        final dataDir = await methods.dataDir();
+        final acceptedFile = File('$dataDir/$privacyPolicyAcceptedFileName');
+        final hasAccepted = await acceptedFile.exists();
+        
+        if (!hasAccepted) {
+          // 等待语言和主题初始化后再显示对话框
+          final appLanguage = await methods.getAppLanguage();
+          await initializeLocale(appLanguage);
+          await initializeTheme();
+          
+          if (!mounted) return;
+          
+          // 显示隐私政策对话框
+          final accepted = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const PrivacyPolicyDialog(),
+          );
+          
+          if (accepted != true) {
+            // 用户不同意，退出应用
+            await methods.exitApp();
+            return;
+          }
+          
+          // 保存同意状态（创建空文件）
+          await acceptedFile.create(recursive: true);
+        }
+      }
+      
       // Get app language and initialize locale
       final appLanguage = await methods.getAppLanguage();
       await initializeLocale(appLanguage);
