@@ -7,8 +7,6 @@ import 'package:etohos/settings_screen.dart';
 import 'package:etohos/app_data.dart';
 import 'package:etohos/network_status.dart';
 import 'package:etohos/log_viewer.dart';
-import 'package:etohos/manual_screen.dart';
-import 'package:etohos/guide_screen.dart';
 import 'package:etohos/privacy_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/utils/logger.dart';
@@ -512,14 +510,13 @@ class _AppScreenState extends State<AppScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          "DHCP:${config.dhcp? '✓' : '✗'}"
-                          + " | "
-                          + "KCP:${config.enableKcpProxy? '✓' : '✗'}"
-                          + "\n"
-                          + "QUIC:${config.enableQuicProxy? '✓' : '✗'}"
-                          + " | "
-                          + "Private:${config.privateMode? '✓' : '✗'}"
-                          ,
+                          "DHCP:${config.dhcp ? '✓' : '✗'}" +
+                              " | " +
+                              "KCP:${config.enableKcpProxy ? '✓' : '✗'}" +
+                              "\n" +
+                              "QUIC:${config.enableQuicProxy ? '✓' : '✗'}" +
+                              " | " +
+                              "Private:${config.privateMode ? '✓' : '✗'}",
                           style: TextStyle(
                             fontSize: 11,
                             color: subtitleColor.withOpacity(0.6),
@@ -687,8 +684,9 @@ class _AppScreenState extends State<AppScreen> {
   Widget _build(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
-    final isMobileOrTablet = AppData.deviceType == "phone" || AppData.deviceType == "tablet";
-    
+    final isMobileOrTablet =
+        AppData.deviceType == "phone" || AppData.deviceType == "tablet";
+
     // 横屏且是手机或平板时，使用分屏布局
     final useSplitLayout = isLandscape && isMobileOrTablet;
 
@@ -724,12 +722,11 @@ class _AppScreenState extends State<AppScreen> {
               tooltip: t('events'),
             ),
           // 设置按钮 - 仅在非隐私政策模式下显示
-          if (!enablePrivacyPolicy)
-            IconButton(
-              onPressed: _openSettings,
-              icon: const Icon(Icons.settings),
-              tooltip: t('settings_tooltip'),
-            ),
+          IconButton(
+            onPressed: _openSettings,
+            icon: const Icon(Icons.settings),
+            tooltip: t('settings_tooltip'),
+          ),
           // 右上角加号按钮
           IconButton(
             onPressed: _addConfig,
@@ -738,7 +735,9 @@ class _AppScreenState extends State<AppScreen> {
           ),
         ],
       ),
-      body: useSplitLayout ? _buildSplitLayout(context) : _buildNormalLayout(context),
+      body: useSplitLayout
+          ? _buildSplitLayout(context)
+          : _buildNormalLayout(context),
       floatingActionButton: FloatingActionButton(
         onPressed: (AppData.configs.isEmpty || _isConnecting)
             ? null
@@ -777,8 +776,7 @@ class _AppScreenState extends State<AppScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.settings,
-                          size: 64, color: Colors.grey),
+                      const Icon(Icons.settings, size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(
                         t('no_configs_title'),
@@ -800,8 +798,8 @@ class _AppScreenState extends State<AppScreen> {
                       return SafeArea(child: Container(height: 100));
                     }
                     final config = AppData.configs[index];
-                    final isSelected = AppData.selectedConfig?.instanceId ==
-                        config.instanceId;
+                    final isSelected =
+                        AppData.selectedConfig?.instanceId == config.instanceId;
 
                     return Watch((context) =>
                         _buildModernConfigCard(context, config, isSelected));
@@ -838,8 +836,7 @@ class _AppScreenState extends State<AppScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.settings,
-                          size: 64, color: Colors.grey),
+                      const Icon(Icons.settings, size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(
                         t('no_configs_title'),
@@ -861,8 +858,8 @@ class _AppScreenState extends State<AppScreen> {
                       return SafeArea(child: Container(height: 100));
                     }
                     final config = AppData.configs[index];
-                    final isSelected = AppData.selectedConfig?.instanceId ==
-                        config.instanceId;
+                    final isSelected =
+                        AppData.selectedConfig?.instanceId == config.instanceId;
 
                     return Watch((context) =>
                         _buildModernConfigCard(context, config, isSelected));

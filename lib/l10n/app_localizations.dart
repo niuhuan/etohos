@@ -380,10 +380,50 @@ class AppLocalizations {
     'response': {'en': 'Response', 'zh': '响应'},
     'response_headers': {'en': 'Response Headers', 'zh': '响应头'},
     
+    // API测试增强
+    'saved_requests': {'en': 'Saved', 'zh': '已保存'},
+    'history': {'en': 'History', 'zh': '历史'},
+    'help': {'en': 'Help', 'zh': '帮助'},
+    'new_request': {'en': 'New Request', 'zh': '新建请求'},
+    'no_saved_requests': {'en': 'No saved requests', 'zh': '暂无保存的请求'},
+    'tap_add_to_create': {'en': 'Tap + to create a new request', 'zh': '点击 + 创建新请求'},
+    'no_url_set': {'en': 'No URL set', 'zh': '未设置URL'},
+    'confirm_delete_request': {'en': 'Delete "{name}"?', 'zh': '删除"{name}"?'},
+    'request_deleted': {'en': 'Request deleted', 'zh': '请求已删除'},
+    'no_history': {'en': 'No test history', 'zh': '暂无测试历史'},
+    'just_now': {'en': 'Just now', 'zh': '刚刚'},
+    'minutes_ago': {'en': '{n} min ago', 'zh': '{n}分钟前'},
+    'hours_ago': {'en': '{n} hr ago', 'zh': '{n}小时前'},
+    'days_ago': {'en': '{n} days ago', 'zh': '{n}天前'},
+    'create_request': {'en': 'Create Request', 'zh': '创建请求'},
+    'create_request_help': {'en': 'Tap the + button to create a new API request. You can save it for later use.', 'zh': '点击 + 按钮创建新的 API 请求，可以保存以便后续使用。'},
+    'edit_request': {'en': 'Edit Request', 'zh': '编辑请求'},
+    'edit_request_help': {'en': 'Tap on any saved request to edit its details including URL, headers, and body.', 'zh': '点击任何已保存的请求可以编辑其详情，包括 URL、请求头和请求体。'},
+    'send_request_help': {'en': 'Configure your request and tap Send to execute it. Results will be shown below and saved to history.', 'zh': '配置请求后点击发送执行，结果将显示在下方并保存到历史记录。'},
+    'save_request': {'en': 'Save Request', 'zh': '保存请求'},
+    'save_request_help': {'en': 'Tap the save icon to save your request for future use. All your requests are stored locally.', 'zh': '点击保存图标保存请求以便将来使用，所有请求都存储在本地。'},
+    'view_history': {'en': 'View History', 'zh': '查看历史'},
+    'view_history_help': {'en': 'Switch to History tab to view all your previous test results including status codes and response times.', 'zh': '切换到历史标签查看之前所有的测试结果，包括状态码和响应时间。'},
+    'request_saved': {'en': 'Request saved', 'zh': '请求已保存'},
+    'failed_to_save': {'en': 'Failed to save', 'zh': '保存失败'},
+    'api_request': {'en': 'API Request', 'zh': 'API 请求'},
+    'request_name': {'en': 'Request Name', 'zh': '请求名称'},
+    'unnamed_request': {'en': 'Unnamed Request', 'zh': '未命名请求'},
+    
     // 底部导航
     'tab_connection': {'en': 'Connection', 'zh': '连接'},
     'tab_api': {'en': 'API', 'zh': '接口'},
+    'api_help': {'en': 'API Help', 'zh': '接口测试帮助'},
+    'api_help_subtitle': {'en': 'Learn how to use the API testing feature', 'zh': '了解如何使用接口测试功能'},
     'tab_more': {'en': 'More', 'zh': '更多'},
+    
+    // 更多页面
+    'tools': {'en': 'Tools', 'zh': '工具'},
+    'help_and_about': {'en': 'Help & About', 'zh': '帮助与关于'},
+    'events_subtitle': {'en': 'View connection events and logs', 'zh': '查看连接事件和日志'},
+    'settings_subtitle': {'en': 'Configure app preferences', 'zh': '配置应用偏好设置'},
+    'guide_subtitle': {'en': 'Learn how to use the app', 'zh': '学习如何使用应用'},
+    'about_subtitle': {'en': 'App information and features', 'zh': '应用信息和功能'},
   };
 }
 

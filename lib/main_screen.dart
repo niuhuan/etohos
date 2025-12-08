@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:etohos/privacy_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/app_screen.dart';
-import 'package:etohos/api_test_screen.dart';
+import 'package:etohos/api_test_screen_new.dart';
 import 'package:etohos/more_screen.dart';
 
 /// 主页面容器
