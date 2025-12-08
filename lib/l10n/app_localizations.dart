@@ -364,6 +364,26 @@ class AppLocalizations {
     'revoke_consent': {'en': 'Revoke Consent', 'zh': '撤销同意'},
     'revoke_consent_confirm': {'en': 'Are you sure you want to revoke your privacy consent? The app will exit.', 'zh': '确定要撤销隐私同意吗？应用将退出。'},
     'revoke_and_exit': {'en': 'Revoke and Exit', 'zh': '撤销并退出'},
+    
+    // API测试
+    'api_test': {'en': 'API Test', 'zh': 'API测试'},
+    'enter_url': {'en': 'Enter URL', 'zh': '请输入URL'},
+    'please_enter_url': {'en': 'Please enter URL', 'zh': '请输入URL'},
+    'headers': {'en': 'Headers', 'zh': '请求头'},
+    'add_header': {'en': 'Add Header', 'zh': '添加请求头'},
+    'header_key': {'en': 'Key', 'zh': '键'},
+    'header_value': {'en': 'Value', 'zh': '值'},
+    'remove_header': {'en': 'Remove Header', 'zh': '移除请求头'},
+    'request_body': {'en': 'Request Body', 'zh': '请求体'},
+    'enter_request_body': {'en': 'Enter request body', 'zh': '输入请求体'},
+    'send_request': {'en': 'Send Request', 'zh': '发送请求'},
+    'response': {'en': 'Response', 'zh': '响应'},
+    'response_headers': {'en': 'Response Headers', 'zh': '响应头'},
+    
+    // 底部导航
+    'tab_connection': {'en': 'Connection', 'zh': '连接'},
+    'tab_api': {'en': 'API', 'zh': '接口'},
+    'tab_more': {'en': 'More', 'zh': '更多'},
   };
 }
 

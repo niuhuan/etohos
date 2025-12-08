@@ -7,12 +7,11 @@ import 'package:etohos/l10n/locale_provider.dart';
 import 'package:etohos/l10n/theme_provider.dart';
 import 'package:etohos/privacy_config.dart';
 import 'package:etohos/privacy_dialog.dart';
+import 'package:etohos/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:signals/signals_flutter.dart';
-
-import 'app_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -134,7 +133,7 @@ class _InitScreenState extends State<InitScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const AppScreen(),
+            builder: (context) => const MainScreen(),
           ),
         );
       }

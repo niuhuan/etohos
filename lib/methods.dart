@@ -264,6 +264,33 @@ class Methods {
       AppLogger.error('Error exiting app', error: e);
     }
   }
+
+  /// HTTP 请求方法
+  Future<HttpResponse> httpRequest({
+    required String method,
+    required String url,
+    Map<String, String>? headers,
+    String? body,
+  }) async {
+    try {
+      final result = await _channel.invokeMethod('http_request', {
+        'method': method,
+        'url': url,
+        'headers': headers ?? {},
+        'body': body ?? '',
+      });
+      
+      final Map<String, dynamic> response = Map<String, dynamic>.from(result);
+      return HttpResponse(
+        statusCode: response['statusCode'] as int,
+        headers: Map<String, String>.from(response['headers'] ?? {}),
+        body: response['body'] as String,
+      );
+    } catch (e) {
+      AppLogger.error('HTTP request failed', error: e);
+      rethrow;
+    }
+  }
 }
 
 /// Basic description information of a distributed device
@@ -345,6 +372,19 @@ class DeviceBasicInfo {
         return deviceType;
     }
   }
+}
+
+/// HTTP 响应类
+class HttpResponse {
+  final int statusCode;
+  final Map<String, String> headers;
+  final String body;
+
+  const HttpResponse({
+    required this.statusCode,
+    required this.headers,
+    required this.body,
+  });
 }
 
 class ConnectState {

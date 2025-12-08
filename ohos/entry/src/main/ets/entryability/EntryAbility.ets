@@ -1,5 +1,6 @@
 import { Any, FlutterAbility, FlutterEngine, MethodCall, MethodChannel, MethodResult } from '@ohos/flutter_ohos';
 import { GeneratedPluginRegistrant } from '../plugins/GeneratedPluginRegistrant';
+import { HttpUtils, HttpResponse } from '../utils/HttpUtils';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { vpnExtension } from '@kit.NetworkKit';
 import { Want, WantAgent, wantAgent, AbilityConstant } from '@kit.AbilityKit';
@@ -336,6 +337,9 @@ export default class EntryAbility extends FlutterAbility {
         case 'exit_app':
           this.exitApp();
           result.success("");
+          break;
+        case 'http_request':
+          result.success(await this.httpRequest(call.args));
           break;
         default:
           result.error("-1", `no call`, null);
@@ -797,6 +801,44 @@ mtu = 1500
       hilog.info(0x0000, 'exitApp', 'Application terminated');
     } catch (error) {
       hilog.error(0x0000, 'exitApp', 'Failed to exit app: ' + JSON.stringify(error));
+    }
+  }
+
+  async httpRequest(args: Map<string, Any>): Promise<HttpResponse> {
+    const method = args.get('method') as string;
+    const url = args.get('url') as string;
+    const headersMap = args.get('headers') as Map<string, string>;
+    const body = args.get('body') as string;
+
+    // Convert Map to Record<string, string>
+    let headers: Record<string, string> = {};
+    if (headersMap) {
+      headersMap.forEach((value: string, key: string) => {
+        headers[key] = value;
+      });
+    }
+
+    try {
+      const response = await HttpUtils.sendRequest({
+        method: method,
+        url: url,
+        headers: headers,
+        body: body || ''
+      });
+
+      let result: HttpResponse = {
+        statusCode: response.statusCode,
+        headers: response.headers,
+        body: response.body
+      };
+      return result;
+    } catch (error) {
+      hilog.error(0x0000, 'httpRequest', 'HTTP request failed: ' + JSON.stringify(error));
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error(`HTTP request failed: ${JSON.stringify(error)}`);
+      }
     }
   }
 }

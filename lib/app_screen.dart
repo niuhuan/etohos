@@ -9,6 +9,7 @@ import 'package:etohos/network_status.dart';
 import 'package:etohos/log_viewer.dart';
 import 'package:etohos/manual_screen.dart';
 import 'package:etohos/guide_screen.dart';
+import 'package:etohos/privacy_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/utils/logger.dart';
 import 'package:flutter/material.dart';
@@ -709,48 +710,26 @@ class _AppScreenState extends State<AppScreen> {
         ),
         // 移除渐变色，使用主题定义的backgroundColor
         actions: [
-          // 事件按钮
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LogViewer(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.history),
-            tooltip: t('events'),
-          ),
-          // 指南按钮
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const GuideScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.school),
-            tooltip: t('guide'),
-          ),
-          // 关于按钮
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ManualScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.info),
-            tooltip: t('about'),
-          ),
-          // 设置按钮
-          IconButton(
-            onPressed: _openSettings,
-            icon: const Icon(Icons.settings),
-            tooltip: t('settings_tooltip'),
-          ),
+          // 事件按钮 - 仅在非隐私政策模式下显示
+          if (!enablePrivacyPolicy)
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const LogViewer(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.history),
+              tooltip: t('events'),
+            ),
+          // 设置按钮 - 仅在非隐私政策模式下显示
+          if (!enablePrivacyPolicy)
+            IconButton(
+              onPressed: _openSettings,
+              icon: const Icon(Icons.settings),
+              tooltip: t('settings_tooltip'),
+            ),
           // 右上角加号按钮
           IconButton(
             onPressed: _addConfig,
