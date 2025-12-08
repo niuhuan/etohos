@@ -54,6 +54,65 @@ interface NetworkData {
   routes: Route[];
 }
 
+// DNS Lookup interfaces
+interface DnsProvider {
+  name: string;
+  url: string;
+}
+
+interface DohAnswer {
+  name: string;
+  type: number;
+  TTL: number;
+  data: string;
+}
+
+interface DohResponse {
+  Status: number;
+  Answer: DohAnswer[];
+}
+
+interface DnsProviderResult {
+  provider: string;
+  success: boolean;
+  addresses: string[];
+  latency: number;
+  message: string;
+}
+
+interface DnsLookupResult {
+  host: string;
+  type: string;
+  success: boolean;
+  addresses: string[];
+  results: DnsProviderResult[];
+  message: string;
+}
+
+// HTTP 204 check interfaces
+interface Http204Route {
+  name: string;
+  url: string;
+  expectedStatus: number;
+}
+
+interface Http204RouteResult {
+  name: string;
+  url: string;
+  success: boolean;
+  statusCode: number;
+  latency: number;
+  message: string;
+}
+
+interface Http204CheckResult {
+  success: boolean;
+  successCount: number;
+  totalCount: number;
+  results: Http204RouteResult[];
+  message: string;
+}
+
 export default class EntryAbility extends FlutterAbility {
   private resourceMgr: resourceManager.ResourceManager | null = null;
   private dmClass: distributedDeviceManager.DeviceManager | null = null;
@@ -340,6 +399,12 @@ export default class EntryAbility extends FlutterAbility {
           break;
         case 'http_request':
           result.success(await this.httpRequest(call.args));
+          break;
+        case 'dns_lookup':
+          result.success(await this.dnsLookup(call.args));
+          break;
+        case 'http204_check':
+          result.success(await this.http204Check(call.args));
           break;
         default:
           result.error("-1", `no call`, null);
@@ -840,6 +905,147 @@ mtu = 1500
         throw new Error(`HTTP request failed: ${JSON.stringify(error)}`);
       }
     }
+  }
+
+  // DNS lookup using public DoH APIs
+  async dnsLookup(args: Map<string, Any>): Promise<DnsLookupResult> {
+    const host = args.get('host') as string;
+    const recordType = (args.get('type') as string) || 'A';
+
+    // DNS-over-HTTPS providers
+    const providers: DnsProvider[] = [
+      { name: 'Alibaba', url: `https://dns.alidns.com/resolve?name=${host}&type=${recordType}` },
+      { name: 'Google', url: `https://dns.google/resolve?name=${host}&type=${recordType}` },
+      { name: 'Cloudflare', url: `https://cloudflare-dns.com/dns-query?name=${host}&type=${recordType}` },
+    ];
+
+    const results: DnsProviderResult[] = [];
+    let successAddresses: string[] = [];
+
+    for (const provider of providers) {
+      try {
+        const startTime = Date.now();
+        const response = await HttpUtils.sendRequest({
+          method: 'GET',
+          url: provider.url,
+          headers: {
+            'Accept': 'application/dns-json'
+          },
+          body: ''
+        });
+        const latency = Date.now() - startTime;
+
+        if (response.statusCode === 200) {
+          const jsonResp = JSON.parse(response.body) as DohResponse;
+          const addresses: string[] = [];
+
+          if (jsonResp.Answer && Array.isArray(jsonResp.Answer)) {
+            for (const answer of jsonResp.Answer) {
+              if (answer.data) {
+                addresses.push(answer.data);
+              }
+            }
+          }
+
+          if (addresses.length > 0 && successAddresses.length === 0) {
+            successAddresses = addresses;
+          }
+
+          results.push({
+            provider: provider.name,
+            success: true,
+            addresses: addresses,
+            latency: latency,
+            message: ''
+          });
+        } else {
+          results.push({
+            provider: provider.name,
+            success: false,
+            addresses: [],
+            latency: latency,
+            message: `HTTP ${response.statusCode}`
+          });
+        }
+      } catch (error) {
+        results.push({
+          provider: provider.name,
+          success: false,
+          addresses: [],
+          latency: 0,
+          message: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+
+    const overallSuccess = results.some(r => r.success);
+
+    return {
+      host: host,
+      type: recordType,
+      success: overallSuccess,
+      addresses: successAddresses,
+      results: results,
+      message: overallSuccess ? '' : 'All DNS providers failed'
+    };
+  }
+
+  // HTTP 204 connectivity check
+  async http204Check(args: Map<string, Any>): Promise<Http204CheckResult> {
+    // 204 connectivity check routes
+    const routes: Http204Route[] = [
+      { name: 'Google', url: 'http://connectivitycheck.gstatic.com/generate_204', expectedStatus: 204 },
+      { name: 'Cloudflare', url: 'http://cp.cloudflare.com/', expectedStatus: 204 },
+      { name: 'Microsoft', url: 'http://www.msftconnecttest.com/connecttest.txt', expectedStatus: 200 },
+      { name: 'Apple', url: 'http://captive.apple.com/', expectedStatus: 200 },
+      { name: 'Alibaba', url: 'http://www.taobao.com/help/getip.php', expectedStatus: 200 },
+    ];
+
+    const results: Http204RouteResult[] = [];
+
+    for (const route of routes) {
+      try {
+        const startTime = Date.now();
+        const response = await HttpUtils.sendRequest({
+          method: 'GET',
+          url: route.url,
+          headers: {},
+          body: ''
+        });
+        const latency = Date.now() - startTime;
+
+        const success = response.statusCode === route.expectedStatus ||
+                       (route.expectedStatus === 200 && response.statusCode >= 200 && response.statusCode < 300);
+
+        results.push({
+          name: route.name,
+          url: route.url,
+          success: success,
+          statusCode: response.statusCode,
+          latency: latency,
+          message: success ? '' : `Unexpected status: ${response.statusCode}`
+        });
+      } catch (error) {
+        results.push({
+          name: route.name,
+          url: route.url,
+          success: false,
+          statusCode: 0,
+          latency: 0,
+          message: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+
+    return {
+      success: successCount > 0,
+      successCount: successCount,
+      totalCount: routes.length,
+      results: results,
+      message: successCount > 0 ? `${successCount}/${routes.length} routes reachable` : 'All routes failed'
+    };
   }
 }
 

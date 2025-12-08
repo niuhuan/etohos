@@ -469,6 +469,18 @@ class AppLocalizations {
     'settings_subtitle': {'en': 'Configure app preferences', 'zh': '配置应用偏好设置'},
     'guide_subtitle': {'en': 'Learn how to use the app', 'zh': '学习如何使用应用'},
     'about_subtitle': {'en': 'App information and features', 'zh': '应用信息和功能'},
+    
+    // 网络工具 - 204检测和DNS
+    'connectivity': {'en': 'Connectivity', 'zh': '连通性'},
+    'connectivity_test': {'en': 'Connectivity Test', 'zh': '连通性测试'},
+    'connectivity_test_desc': {'en': 'Test network connectivity to multiple providers', 'zh': '测试到多个服务商的网络连通性'},
+    'checking': {'en': 'Checking...', 'zh': '检测中...'},
+    'start_check': {'en': 'Start Check', 'zh': '开始检测'},
+    'routes_reachable': {'en': 'routes reachable', 'zh': '个线路可达'},
+    'dns_lookup_desc': {'en': 'Query DNS records using multiple DoH providers', 'zh': '使用多个 DoH 提供商查询 DNS 记录'},
+    'resolved_addresses': {'en': 'Resolved Addresses', 'zh': '解析地址'},
+    'provider_results': {'en': 'Provider Results', 'zh': '各服务商结果'},
+    'result': {'en': 'Result', 'zh': '结果'},
   };
 }
 

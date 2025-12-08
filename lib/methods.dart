@@ -292,38 +292,46 @@ class Methods {
     }
   }
 
-  /// Ping 测试
-  Future<PingResult> ping(String host, {int count = 4}) async {
+  /// HTTP 204 连通性检测（替代 Ping）
+  Future<Http204CheckResult> http204Check() async {
     try {
-      final result = await _channel.invokeMethod('ping', {
-        'host': host,
-        'count': count,
-      });
+      final result = await _channel.invokeMethod('http204_check', {});
       
       final Map<String, dynamic> response = Map<String, dynamic>.from(result);
-      return PingResult(
-        host: response['host'] as String,
+      final List<dynamic> resultsJson = response['results'] ?? [];
+      
+      final routes = resultsJson.map((r) {
+        final routeMap = Map<String, dynamic>.from(r);
+        return Http204RouteResult(
+          name: routeMap['name'] as String,
+          url: routeMap['url'] as String,
+          success: routeMap['success'] as bool,
+          statusCode: routeMap['statusCode'] as int? ?? 0,
+          latency: routeMap['latency'] as int? ?? 0,
+          message: routeMap['message'] as String? ?? '',
+        );
+      }).toList();
+      
+      return Http204CheckResult(
         success: response['success'] as bool,
-        packetsSent: response['packetsSent'] as int? ?? 0,
-        packetsReceived: response['packetsReceived'] as int? ?? 0,
-        minTime: response['minTime'] as int?,
-        maxTime: response['maxTime'] as int?,
-        avgTime: response['avgTime'] as int?,
+        successCount: response['successCount'] as int? ?? 0,
+        totalCount: response['totalCount'] as int? ?? 0,
+        results: routes,
         message: response['message'] as String? ?? '',
       );
     } catch (e) {
-      AppLogger.error('Ping failed', error: e);
-      return PingResult(
-        host: host,
+      AppLogger.error('HTTP 204 check failed', error: e);
+      return Http204CheckResult(
         success: false,
-        packetsSent: 0,
-        packetsReceived: 0,
+        successCount: 0,
+        totalCount: 0,
+        results: [],
         message: 'Error: $e',
       );
     }
   }
 
-  /// DNS 查询
+  /// DNS 查询（多 DoH 提供商）
   Future<DnsResult> dnsLookup(String host, {String type = 'A'}) async {
     try {
       final result = await _channel.invokeMethod('dns_lookup', {
@@ -332,43 +340,90 @@ class Methods {
       });
       
       final Map<String, dynamic> response = Map<String, dynamic>.from(result);
+      final List<dynamic> resultsJson = response['results'] ?? [];
+      
+      final providerResults = resultsJson.map((r) {
+        final providerMap = Map<String, dynamic>.from(r);
+        return DnsProviderResult(
+          provider: providerMap['provider'] as String,
+          success: providerMap['success'] as bool,
+          addresses: List<String>.from(providerMap['addresses'] ?? []),
+          latency: providerMap['latency'] as int? ?? 0,
+          message: providerMap['message'] as String? ?? '',
+        );
+      }).toList();
+      
       return DnsResult(
         host: response['host'] as String,
+        type: response['type'] as String? ?? type,
         success: response['success'] as bool,
         addresses: List<String>.from(response['addresses'] ?? []),
+        results: providerResults,
         message: response['message'] as String? ?? '',
       );
     } catch (e) {
       AppLogger.error('DNS lookup failed', error: e);
       return DnsResult(
         host: host,
+        type: type,
         success: false,
         addresses: [],
+        results: [],
         message: 'Error: $e',
       );
     }
   }
 }
 
-/// Ping 结果
-class PingResult {
-  final String host;
+/// HTTP 204 单个路由结果
+class Http204RouteResult {
+  final String name;
+  final String url;
   final bool success;
-  final int packetsSent;
-  final int packetsReceived;
-  final int? minTime; // 毫秒
-  final int? maxTime; // 毫秒
-  final int? avgTime; // 毫秒
+  final int statusCode;
+  final int latency; // 毫秒
   final String message;
 
-  const PingResult({
-    required this.host,
+  const Http204RouteResult({
+    required this.name,
+    required this.url,
     required this.success,
-    required this.packetsSent,
-    required this.packetsReceived,
-    this.minTime,
-    this.maxTime,
-    this.avgTime,
+    required this.statusCode,
+    required this.latency,
+    required this.message,
+  });
+}
+
+/// HTTP 204 连通性检测结果
+class Http204CheckResult {
+  final bool success;
+  final int successCount;
+  final int totalCount;
+  final List<Http204RouteResult> results;
+  final String message;
+
+  const Http204CheckResult({
+    required this.success,
+    required this.successCount,
+    required this.totalCount,
+    required this.results,
+    required this.message,
+  });
+}
+
+/// DNS 单个提供商结果
+class DnsProviderResult {
+  final String provider;
+  final bool success;
+  final List<String> addresses;
+  final int latency; // 毫秒
+  final String message;
+
+  const DnsProviderResult({
+    required this.provider,
+    required this.success,
+    required this.addresses,
+    required this.latency,
     required this.message,
   });
 }
@@ -376,14 +431,18 @@ class PingResult {
 /// DNS 查询结果
 class DnsResult {
   final String host;
+  final String type;
   final bool success;
   final List<String> addresses;
+  final List<DnsProviderResult> results;
   final String message;
 
   const DnsResult({
     required this.host,
+    required this.type,
     required this.success,
     required this.addresses,
+    required this.results,
     required this.message,
   });
 }
