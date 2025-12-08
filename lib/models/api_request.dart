@@ -8,6 +8,7 @@ class ApiRequest {
   final String body;
   final DateTime createdAt;
   final DateTime? lastUsedAt;
+  final String? collectionId; // 所属集合ID
 
   const ApiRequest({
     required this.id,
@@ -18,6 +19,7 @@ class ApiRequest {
     required this.body,
     required this.createdAt,
     this.lastUsedAt,
+    this.collectionId,
   });
 
   ApiRequest copyWith({
@@ -29,6 +31,7 @@ class ApiRequest {
     String? body,
     DateTime? createdAt,
     DateTime? lastUsedAt,
+    String? collectionId,
   }) {
     return ApiRequest(
       id: id ?? this.id,
@@ -39,6 +42,7 @@ class ApiRequest {
       body: body ?? this.body,
       createdAt: createdAt ?? this.createdAt,
       lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      collectionId: collectionId ?? this.collectionId,
     );
   }
 
@@ -52,6 +56,7 @@ class ApiRequest {
       'body': body,
       'createdAt': createdAt.toIso8601String(),
       'lastUsedAt': lastUsedAt?.toIso8601String(),
+      'collectionId': collectionId,
     };
   }
 
@@ -67,6 +72,7 @@ class ApiRequest {
       lastUsedAt: json['lastUsedAt'] != null 
           ? DateTime.parse(json['lastUsedAt'] as String) 
           : null,
+      collectionId: json['collectionId'] as String?,
     );
   }
 }

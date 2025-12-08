@@ -2,7 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/models/api_request.dart';
+import 'package:etohos/models/environment.dart';
+import 'package:etohos/models/api_collection.dart';
 import 'package:etohos/storage/api_request_storage.dart';
+import 'package:etohos/storage/environment_storage.dart';
+import 'package:etohos/storage/collection_storage.dart';
+import 'package:etohos/environment_manager_screen.dart' show EnvironmentEditorScreen;
 import 'package:etohos/methods.dart';
 import 'package:uuid/uuid.dart';
 
@@ -17,21 +22,33 @@ class _ApiTestScreenState extends State<ApiTestScreen> with SingleTickerProvider
   late TabController _tabController;
   List<ApiRequest> _savedRequests = [];
   List<ApiTestHistory> _history = [];
+  List<Environment> _environments = [];
+  Environment? _selectedEnvironment;
+  List<ApiCollection> _collections = [];
   
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {}); // 更新 FloatingActionButton
+    });
     _loadData();
   }
 
   Future<void> _loadData() async {
     final requests = await ApiRequestStorage.loadRequests();
     final history = await ApiRequestStorage.loadHistory();
+    final environments = await EnvironmentStorage.loadEnvironments();
+    final collections = await CollectionStorage.loadCollections();
+    final defaultEnv = await EnvironmentStorage.getDefaultEnvironment();
     
     setState(() {
       _savedRequests = requests;
       _history = history;
+      _environments = environments;
+      _selectedEnvironment = defaultEnv;
+      _collections = collections;
     });
   }
 
@@ -109,6 +126,7 @@ class _ApiTestScreenState extends State<ApiTestScreen> with SingleTickerProvider
           tabs: [
             Tab(icon: const Icon(Icons.list), text: t('saved_requests')),
             Tab(icon: const Icon(Icons.history), text: t('history')),
+            Tab(icon: const Icon(Icons.settings_applications), text: t('environment')),
           ],
         ),
       ),
@@ -117,13 +135,39 @@ class _ApiTestScreenState extends State<ApiTestScreen> with SingleTickerProvider
         children: [
           _buildRequestsTab(),
           _buildHistoryTab(),
+          _buildEnvironmentTab(),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _createNewRequest,
-        child: const Icon(Icons.add),
-        tooltip: t('new_request'),
-      ),
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton(
+              onPressed: _createNewRequest,
+              child: const Icon(Icons.add),
+              tooltip: t('new_request'),
+            )
+          : _tabController.index == 2
+              ? FloatingActionButton(
+                  onPressed: () async {
+                    final result = await Navigator.of(context).push<Environment>(
+                      MaterialPageRoute(
+                        builder: (context) => EnvironmentEditorScreen(
+                          environment: Environment(
+                            id: const Uuid().v4(),
+                            name: t('new_environment'),
+                            variables: {},
+                            isDefault: false,
+                          ),
+                        ),
+                      ),
+                    );
+                    if (result != null) {
+                      await EnvironmentStorage.saveEnvironment(result);
+                      _loadData();
+                    }
+                  },
+                  child: const Icon(Icons.add),
+                  tooltip: t('new_environment'),
+                )
+              : null,
     );
   }
 
@@ -174,101 +218,522 @@ class _ApiTestScreenState extends State<ApiTestScreen> with SingleTickerProvider
       );
     }
 
+    // 按集合分组
+    final rootCollections = _collections.where((c) => c.parentId == null).toList();
+    final requestsWithoutCollection = _savedRequests.where((r) => r.collectionId == null).toList();
+    
     return ListView.builder(
       padding: const EdgeInsets.all(12),
-      itemCount: _savedRequests.length,
+      itemCount: rootCollections.length + requestsWithoutCollection.length,
       itemBuilder: (context, index) {
-        final request = _savedRequests[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: colorScheme.outline.withOpacity(0.2),
-              width: 1,
+        // 先显示集合
+        if (index < rootCollections.length) {
+          final collection = rootCollections[index];
+          final collectionRequests = _savedRequests.where((r) => r.collectionId == collection.id).toList();
+          
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: colorScheme.outline.withOpacity(0.2),
+                width: 1,
+              ),
             ),
-          ),
-          child: InkWell(
-            onTap: () => _editRequest(request),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _buildMethodChip(request.method),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            child: ExpansionTile(
+              leading: Icon(Icons.folder, color: Colors.orange),
+              title: Text(
+                collection.name,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                '${collectionRequests.length} ${t('requests')}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+              children: collectionRequests.map((request) {
+                return _buildRequestCard(request, colorScheme);
+              }).toList(),
+            ),
+          );
+        }
+        
+        // 然后显示没有集合的请求
+        final requestIndex = index - rootCollections.length;
+        final request = requestsWithoutCollection[requestIndex];
+        return _buildRequestCard(request, colorScheme);
+      },
+    );
+  }
+
+  Widget _buildRequestCard(ApiRequest request, ColorScheme colorScheme) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () => _editRequest(request),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              _buildMethodChip(request.method),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      request.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      request.url.isEmpty ? t('no_url_set') : request.url,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuButton(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
                       children: [
+                        Icon(Icons.edit_outlined, size: 20, color: colorScheme.primary),
+                        const SizedBox(width: 12),
+                        Text(t('edit')),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                        const SizedBox(width: 12),
                         Text(
-                          request.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          request.url.isEmpty ? t('no_url_set') : request.url,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colorScheme.onSurface.withOpacity(0.6),
-                          ),
+                          t('delete'),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ],
                     ),
                   ),
-                  PopupMenuButton(
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: colorScheme.onSurface.withOpacity(0.6),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 20, color: colorScheme.primary),
-                            const SizedBox(width: 12),
-                            Text(t('edit')),
-                          ],
+                ],
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    _editRequest(request);
+                  } else if (value == 'delete') {
+                    _deleteRequest(request);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnvironmentTab() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      children: [
+        // 当前选择的环境显示
+        if (_selectedEnvironment != null)
+          Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colorScheme.primary.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t('current_environment'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, size: 20, color: Colors.red),
-                            const SizedBox(width: 12),
-                            Text(
-                              t('delete'),
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ],
+                      const SizedBox(height: 4),
+                      Text(
+                        _selectedEnvironment!.name,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ],
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _editRequest(request);
-                      } else if (value == 'delete') {
-                        _deleteRequest(request);
-                      }
-                    },
                   ),
-                ],
-              ),
+                ),
+                PopupMenuButton<Environment>(
+                  icon: Icon(
+                    Icons.arrow_drop_down,
+                    color: colorScheme.primary,
+                  ),
+                  tooltip: t('switch_environment'),
+                  itemBuilder: (context) => _environments.map((env) {
+                    return PopupMenuItem(
+                      value: env,
+                      child: Row(
+                        children: [
+                          if (env.id == _selectedEnvironment?.id)
+                            Icon(Icons.check, size: 20, color: colorScheme.primary),
+                          if (env.id != _selectedEnvironment?.id)
+                            const SizedBox(width: 20),
+                          Expanded(child: Text(env.name)),
+                          if (env.isDefault)
+                            Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                t('default'),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onSelected: (env) {
+                    setState(() {
+                      _selectedEnvironment = env;
+                    });
+                  },
+                ),
+              ],
             ),
           ),
-        );
-      },
+        
+        // 环境列表
+        Expanded(
+          child: _environments.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.settings_applications_outlined,
+                          size: 64,
+                          color: colorScheme.onSurface.withOpacity(0.5),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          t('no_environments'),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          t('tap_add_to_create_environment'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            final result = await Navigator.of(context).push<Environment>(
+                              MaterialPageRoute(
+                                builder: (context) => EnvironmentEditorScreen(
+                                  environment: Environment(
+                                    id: const Uuid().v4(),
+                                    name: t('new_environment'),
+                                    variables: {},
+                                    isDefault: false,
+                                  ),
+                                ),
+                              ),
+                            );
+                            if (result != null) {
+                              await EnvironmentStorage.saveEnvironment(result);
+                              _loadData();
+                            }
+                          },
+                          icon: const Icon(Icons.add),
+                          label: Text(t('new_environment')),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _environments.length,
+                  itemBuilder: (context, index) {
+                    final environment = _environments[index];
+                    final isSelected = environment.id == _selectedEnvironment?.id;
+                    
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: isSelected
+                              ? colorScheme.primary.withOpacity(0.5)
+                              : colorScheme.outline.withOpacity(0.2),
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: InkWell(
+                        onTap: () async {
+                          final result = await Navigator.of(context).push<Environment>(
+                            MaterialPageRoute(
+                              builder: (context) => EnvironmentEditorScreen(environment: environment),
+                            ),
+                          );
+                          if (result != null) {
+                            await EnvironmentStorage.saveEnvironment(result);
+                            _loadData();
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: (isSelected
+                                          ? colorScheme.primary
+                                          : (environment.isDefault
+                                              ? colorScheme.primary
+                                              : Colors.blue))
+                                      .withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.settings_applications,
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : (environment.isDefault
+                                          ? colorScheme.primary
+                                          : Colors.blue),
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          environment.name,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: colorScheme.onSurface,
+                                          ),
+                                        ),
+                                        if (environment.isDefault) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: colorScheme.primaryContainer
+                                                  .withOpacity(0.5),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              t('default'),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.primary,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        if (isSelected) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: colorScheme.primaryContainer
+                                                  .withOpacity(0.5),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              t('selected'),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme.primary,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${environment.variables.length} ${t('variables')}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: colorScheme.onSurface.withOpacity(0.6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuButton(
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'select',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.check_circle_outline,
+                                            size: 20, color: colorScheme.primary),
+                                        const SizedBox(width: 12),
+                                        Text(t('select')),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.edit_outlined,
+                                            size: 20, color: colorScheme.primary),
+                                        const SizedBox(width: 12),
+                                        Text(t('edit')),
+                                      ],
+                                    ),
+                                  ),
+                                  if (!environment.isDefault)
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.delete_outline,
+                                              size: 20, color: Colors.red),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            t('delete'),
+                                            style: const TextStyle(color: Colors.red),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                                onSelected: (value) async {
+                                  if (value == 'select') {
+                                    setState(() {
+                                      _selectedEnvironment = environment;
+                                    });
+                                  } else if (value == 'edit') {
+                                    final result = await Navigator.of(context).push<Environment>(
+                                      MaterialPageRoute(
+                                        builder: (context) => EnvironmentEditorScreen(environment: environment),
+                                      ),
+                                    );
+                                    if (result != null) {
+                                      await EnvironmentStorage.saveEnvironment(result);
+                                      _loadData();
+                                    }
+                                  } else if (value == 'delete') {
+                                    await EnvironmentStorage.deleteEnvironment(environment.id);
+                                    _loadData();
+                                    if (environment.id == _selectedEnvironment?.id) {
+                                      final defaultEnv = await EnvironmentStorage.getDefaultEnvironment();
+                                      setState(() {
+                                        _selectedEnvironment = defaultEnv;
+                                      });
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(t('environment_deleted'))),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 
@@ -617,7 +1082,10 @@ class _ApiRequestEditorScreenState extends State<ApiRequestEditorScreen> {
   int _responseDuration = 0;
 
   final List<String> _methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
-
+  
+  List<Environment> _environments = [];
+  Environment? _selectedEnvironment;
+  
   @override
   void initState() {
     super.initState();
@@ -626,6 +1094,16 @@ class _ApiRequestEditorScreenState extends State<ApiRequestEditorScreen> {
     _bodyController = TextEditingController(text: widget.request.body);
     _selectedMethod = widget.request.method;
     _headers = widget.request.headers.entries.toList();
+    _loadEnvironments();
+  }
+  
+  Future<void> _loadEnvironments() async {
+    final environments = await EnvironmentStorage.loadEnvironments();
+    final defaultEnv = await EnvironmentStorage.getDefaultEnvironment();
+    setState(() {
+      _environments = environments;
+      _selectedEnvironment = defaultEnv;
+    });
   }
 
   @override
@@ -673,15 +1151,27 @@ class _ApiRequestEditorScreenState extends State<ApiRequestEditorScreen> {
     final startTime = DateTime.now();
 
     try {
-      final headers = Map.fromEntries(
+      // 替换环境变量
+      String finalUrl = _urlController.text.trim();
+      String finalBody = _bodyController.text;
+      Map<String, String> finalHeaders = Map.fromEntries(
         _headers.where((e) => e.key.isNotEmpty && e.value.isNotEmpty),
       );
+      
+      if (_selectedEnvironment != null) {
+        finalUrl = _selectedEnvironment!.replaceVariables(finalUrl);
+        finalBody = _selectedEnvironment!.replaceVariables(finalBody);
+        finalHeaders = finalHeaders.map((key, value) => MapEntry(
+          _selectedEnvironment!.replaceVariables(key),
+          _selectedEnvironment!.replaceVariables(value),
+        ));
+      }
 
       final response = await methods.httpRequest(
         method: _selectedMethod,
-        url: _urlController.text.trim(),
-        headers: headers,
-        body: _bodyController.text,
+        url: finalUrl,
+        headers: finalHeaders,
+        body: finalBody,
       );
 
       final endTime = DateTime.now();
@@ -754,12 +1244,63 @@ class _ApiRequestEditorScreenState extends State<ApiRequestEditorScreen> {
     }
   }
 
+  void _showCurlCode() {
+    final request = _getCurrentRequest();
+    final curlCommand = _generateCurlCommand(request);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t('curl_command')),
+        content: SelectableText(
+          curlCommand,
+          style: const TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 12,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(t('close')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _generateCurlCommand(ApiRequest request) {
+    final buffer = StringBuffer();
+    buffer.write('curl -X $request.method');
+    
+    // Headers
+    request.headers.forEach((key, value) {
+      buffer.write(' \\\n  -H "$key: $value"');
+    });
+    
+    // Body
+    if (request.body.isNotEmpty && 
+        (request.method == 'POST' || request.method == 'PUT' || request.method == 'PATCH')) {
+      buffer.write(' \\\n  -d \'${request.body.replaceAll("'", "\\'")}\'');
+    }
+    
+    // URL
+    buffer.write(' \\\n  "${request.url}"');
+    
+    return buffer.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(t('api_request')),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.code),
+            onPressed: _showCurlCode,
+            tooltip: t('generate_curl'),
+          ),
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: _saveRequest,
@@ -775,6 +1316,45 @@ class _ApiRequestEditorScreenState extends State<ApiRequestEditorScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Environment selector
+                  if (_environments.isNotEmpty) ...[
+                    Card(
+                      elevation: 0,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: Icon(Icons.settings_applications, color: Theme.of(context).colorScheme.primary),
+                        title: Text(t('environment')),
+                        subtitle: Text(_selectedEnvironment?.name ?? t('no_environment')),
+                        trailing: PopupMenuButton<Environment>(
+                          icon: const Icon(Icons.arrow_drop_down),
+                          itemBuilder: (context) => _environments.map((env) {
+                            return PopupMenuItem(
+                              value: env,
+                              child: Row(
+                                children: [
+                                  if (env.id == _selectedEnvironment?.id)
+                                    Icon(Icons.check, size: 20, color: Theme.of(context).colorScheme.primary),
+                                  if (env.id != _selectedEnvironment?.id)
+                                    const SizedBox(width: 20),
+                                  Expanded(child: Text(env.name)),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onSelected: (env) {
+                            setState(() {
+                              _selectedEnvironment = env;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  
                   // Request Name
                   TextField(
                     controller: _nameController,

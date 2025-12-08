@@ -5,6 +5,7 @@ import 'package:etohos/guide_screen.dart';
 import 'package:etohos/log_viewer.dart';
 import 'package:etohos/settings_screen.dart';
 import 'package:etohos/app_data.dart';
+import 'package:etohos/network_tools_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -47,6 +48,20 @@ class MoreScreen extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => SettingsScreen(source: AppData.settings),
+                ),
+              );
+            },
+          ),
+          _buildMenuItem(
+            context,
+            icon: Icons.network_ping,
+            title: t('network_tools'),
+            subtitle: t('network_tools_subtitle'),
+            color: Colors.orange,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const NetworkToolsScreen(),
                 ),
               );
             },

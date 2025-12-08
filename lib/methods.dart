@@ -291,6 +291,101 @@ class Methods {
       rethrow;
     }
   }
+
+  /// Ping 测试
+  Future<PingResult> ping(String host, {int count = 4}) async {
+    try {
+      final result = await _channel.invokeMethod('ping', {
+        'host': host,
+        'count': count,
+      });
+      
+      final Map<String, dynamic> response = Map<String, dynamic>.from(result);
+      return PingResult(
+        host: response['host'] as String,
+        success: response['success'] as bool,
+        packetsSent: response['packetsSent'] as int? ?? 0,
+        packetsReceived: response['packetsReceived'] as int? ?? 0,
+        minTime: response['minTime'] as int?,
+        maxTime: response['maxTime'] as int?,
+        avgTime: response['avgTime'] as int?,
+        message: response['message'] as String? ?? '',
+      );
+    } catch (e) {
+      AppLogger.error('Ping failed', error: e);
+      return PingResult(
+        host: host,
+        success: false,
+        packetsSent: 0,
+        packetsReceived: 0,
+        message: 'Error: $e',
+      );
+    }
+  }
+
+  /// DNS 查询
+  Future<DnsResult> dnsLookup(String host, {String type = 'A'}) async {
+    try {
+      final result = await _channel.invokeMethod('dns_lookup', {
+        'host': host,
+        'type': type,
+      });
+      
+      final Map<String, dynamic> response = Map<String, dynamic>.from(result);
+      return DnsResult(
+        host: response['host'] as String,
+        success: response['success'] as bool,
+        addresses: List<String>.from(response['addresses'] ?? []),
+        message: response['message'] as String? ?? '',
+      );
+    } catch (e) {
+      AppLogger.error('DNS lookup failed', error: e);
+      return DnsResult(
+        host: host,
+        success: false,
+        addresses: [],
+        message: 'Error: $e',
+      );
+    }
+  }
+}
+
+/// Ping 结果
+class PingResult {
+  final String host;
+  final bool success;
+  final int packetsSent;
+  final int packetsReceived;
+  final int? minTime; // 毫秒
+  final int? maxTime; // 毫秒
+  final int? avgTime; // 毫秒
+  final String message;
+
+  const PingResult({
+    required this.host,
+    required this.success,
+    required this.packetsSent,
+    required this.packetsReceived,
+    this.minTime,
+    this.maxTime,
+    this.avgTime,
+    required this.message,
+  });
+}
+
+/// DNS 查询结果
+class DnsResult {
+  final String host;
+  final bool success;
+  final List<String> addresses;
+  final String message;
+
+  const DnsResult({
+    required this.host,
+    required this.success,
+    required this.addresses,
+    required this.message,
+  });
 }
 
 /// Basic description information of a distributed device
