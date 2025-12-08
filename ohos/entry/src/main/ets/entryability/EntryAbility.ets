@@ -907,25 +907,27 @@ mtu = 1500
     }
   }
 
-  // DNS lookup using public DoH APIs
+  // DNS lookup using public DoH APIs (parallel requests with 3s timeout)
   async dnsLookup(args: Map<string, Any>): Promise<DnsLookupResult> {
     const host = args.get('host') as string;
     const recordType = (args.get('type') as string) || 'A';
 
     // DNS-over-HTTPS providers
     const providers: DnsProvider[] = [
-      { name: 'Alibaba', url: `https://dns.alidns.com/resolve?name=${host}&type=${recordType}` },
       { name: 'Google', url: `https://dns.google/resolve?name=${host}&type=${recordType}` },
       { name: 'Cloudflare', url: `https://cloudflare-dns.com/dns-query?name=${host}&type=${recordType}` },
+      { name: 'Alibaba', url: `https://dns.alidns.com/resolve?name=${host}&type=${recordType}` },
     ];
 
-    const results: DnsProviderResult[] = [];
-    let successAddresses: string[] = [];
-
-    for (const provider of providers) {
+    // Parallel DNS queries with 3s timeout
+    const queryPromises = providers.map(async (provider): Promise<DnsProviderResult> => {
+      const startTime = Date.now();
       try {
-        const startTime = Date.now();
-        const response = await HttpUtils.sendRequest({
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 3000);
+        });
+
+        const requestPromise = HttpUtils.sendRequest({
           method: 'GET',
           url: provider.url,
           headers: {
@@ -933,6 +935,8 @@ mtu = 1500
           },
           body: ''
         });
+
+        const response = await Promise.race([requestPromise, timeoutPromise]);
         const latency = Date.now() - startTime;
 
         if (response.statusCode === 200) {
@@ -947,34 +951,41 @@ mtu = 1500
             }
           }
 
-          if (addresses.length > 0 && successAddresses.length === 0) {
-            successAddresses = addresses;
-          }
-
-          results.push({
+          return {
             provider: provider.name,
             success: true,
             addresses: addresses,
             latency: latency,
             message: ''
-          });
+          };
         } else {
-          results.push({
+          return {
             provider: provider.name,
             success: false,
             addresses: [],
             latency: latency,
             message: `HTTP ${response.statusCode}`
-          });
+          };
         }
       } catch (error) {
-        results.push({
+        return {
           provider: provider.name,
           success: false,
           addresses: [],
-          latency: 0,
+          latency: Date.now() - startTime,
           message: error instanceof Error ? error.message : String(error)
-        });
+        };
+      }
+    });
+
+    const results = await Promise.all(queryPromises);
+
+    // Find first successful addresses
+    let successAddresses: string[] = [];
+    for (const result of results) {
+      if (result.success && result.addresses.length > 0) {
+        successAddresses = result.addresses;
+        break;
       }
     }
 
@@ -990,53 +1001,58 @@ mtu = 1500
     };
   }
 
-  // HTTP 204 connectivity check
+  // HTTP 204 connectivity check (parallel requests with 3s timeout)
   async http204Check(args: Map<string, Any>): Promise<Http204CheckResult> {
-    // 204 connectivity check routes
+    // 204 connectivity check routes (removed Alibaba due to 403)
     const routes: Http204Route[] = [
       { name: 'Google', url: 'http://connectivitycheck.gstatic.com/generate_204', expectedStatus: 204 },
       { name: 'Cloudflare', url: 'http://cp.cloudflare.com/', expectedStatus: 204 },
       { name: 'Microsoft', url: 'http://www.msftconnecttest.com/connecttest.txt', expectedStatus: 200 },
       { name: 'Apple', url: 'http://captive.apple.com/', expectedStatus: 200 },
-      { name: 'Alibaba', url: 'http://www.taobao.com/help/getip.php', expectedStatus: 200 },
     ];
 
-    const results: Http204RouteResult[] = [];
-
-    for (const route of routes) {
+    // Parallel connectivity checks with 3s timeout
+    const checkPromises = routes.map(async (route): Promise<Http204RouteResult> => {
+      const startTime = Date.now();
       try {
-        const startTime = Date.now();
-        const response = await HttpUtils.sendRequest({
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 3000);
+        });
+
+        const requestPromise = HttpUtils.sendRequest({
           method: 'GET',
           url: route.url,
           headers: {},
           body: ''
         });
+
+        const response = await Promise.race([requestPromise, timeoutPromise]);
         const latency = Date.now() - startTime;
 
         const success = response.statusCode === route.expectedStatus ||
                        (route.expectedStatus === 200 && response.statusCode >= 200 && response.statusCode < 300);
 
-        results.push({
+        return {
           name: route.name,
           url: route.url,
           success: success,
           statusCode: response.statusCode,
           latency: latency,
           message: success ? '' : `Unexpected status: ${response.statusCode}`
-        });
+        };
       } catch (error) {
-        results.push({
+        return {
           name: route.name,
           url: route.url,
           success: false,
           statusCode: 0,
-          latency: 0,
+          latency: Date.now() - startTime,
           message: error instanceof Error ? error.message : String(error)
-        });
+        };
       }
-    }
+    });
 
+    const results = await Promise.all(checkPromises);
     const successCount = results.filter(r => r.success).length;
 
     return {
