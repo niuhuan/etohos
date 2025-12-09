@@ -120,9 +120,9 @@ class _ApiTestScreenState extends State<ApiTestScreen> with SingleTickerProvider
         title: Text(t('api_test')),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Theme.of(context).colorScheme.onSurface,
-          unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-          indicatorColor: Theme.of(context).colorScheme.primary,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white.withOpacity(0.7),
+          indicatorColor: Colors.white,
           tabs: [
             Tab(icon: const Icon(Icons.list), text: t('saved_requests')),
             Tab(icon: const Icon(Icons.history), text: t('history')),
