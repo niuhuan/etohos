@@ -113,6 +113,31 @@ interface Http204CheckResult {
   message: string;
 }
 
+// IP Info interfaces
+interface IpApiProvider {
+  name: string;
+  url: string;
+}
+
+interface IpProviderResult {
+  provider: string;
+  success: boolean;
+  ip: string;
+  country: string;
+  region: string;
+  city: string;
+  isp: string;
+  org: string;
+  latency: number;
+  message: string;
+}
+
+interface IpInfoResult {
+  success: boolean;
+  results: IpProviderResult[];
+  message: string;
+}
+
 export default class EntryAbility extends FlutterAbility {
   private resourceMgr: resourceManager.ResourceManager | null = null;
   private dmClass: distributedDeviceManager.DeviceManager | null = null;
@@ -405,6 +430,9 @@ export default class EntryAbility extends FlutterAbility {
           break;
         case 'http204_check':
           result.success(await this.http204Check(call.args));
+          break;
+        case 'get_my_ip_info':
+          result.success(await this.getMyIpInfo());
           break;
         default:
           result.error("-1", `no call`, null);
@@ -1061,6 +1089,115 @@ mtu = 1500
       totalCount: routes.length,
       results: results,
       message: successCount > 0 ? `${successCount}/${routes.length} routes reachable` : 'All routes failed'
+    };
+  }
+
+  // Get public IP info (parallel requests with 3s timeout)
+  async getMyIpInfo(): Promise<IpInfoResult> {
+    // Open source IP info APIs
+    const providers: IpApiProvider[] = [
+      { name: 'ip-api.com', url: 'http://ip-api.com/json/?lang=zh-CN' },
+      { name: 'ipify.org', url: 'https://api.ipify.org?format=json' },
+      { name: 'ipinfo.io', url: 'https://ipinfo.io/json' },
+    ];
+
+    // Parallel IP info queries with 3s timeout
+    const queryPromises = providers.map(async (provider): Promise<IpProviderResult> => {
+      const startTime = Date.now();
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 3000);
+        });
+
+        const requestPromise = HttpUtils.sendRequest({
+          method: 'GET',
+          url: provider.url,
+          headers: {
+            'Accept': 'application/json'
+          },
+          body: ''
+        });
+
+        const response = await Promise.race([requestPromise, timeoutPromise]);
+        const latency = Date.now() - startTime;
+
+        if (response.statusCode === 200) {
+          const data = JSON.parse(response.body) as Record<string, string>;
+          
+          // Parse different API response formats
+          let ip = '';
+          let country = '';
+          let region = '';
+          let city = '';
+          let isp = '';
+          let org = '';
+
+          if (provider.name === 'ip-api.com') {
+            ip = data['query'] || '';
+            country = data['country'] || '';
+            region = data['regionName'] || '';
+            city = data['city'] || '';
+            isp = data['isp'] || '';
+            org = data['org'] || '';
+          } else if (provider.name === 'ipify.org') {
+            ip = data['ip'] || '';
+          } else if (provider.name === 'ipinfo.io') {
+            ip = data['ip'] || '';
+            country = data['country'] || '';
+            region = data['region'] || '';
+            city = data['city'] || '';
+            org = data['org'] || '';
+          }
+
+          return {
+            provider: provider.name,
+            success: ip.length > 0,
+            ip: ip,
+            country: country,
+            region: region,
+            city: city,
+            isp: isp,
+            org: org,
+            latency: latency,
+            message: ''
+          };
+        } else {
+          return {
+            provider: provider.name,
+            success: false,
+            ip: '',
+            country: '',
+            region: '',
+            city: '',
+            isp: '',
+            org: '',
+            latency: latency,
+            message: `HTTP ${response.statusCode}`
+          };
+        }
+      } catch (error) {
+        return {
+          provider: provider.name,
+          success: false,
+          ip: '',
+          country: '',
+          region: '',
+          city: '',
+          isp: '',
+          org: '',
+          latency: Date.now() - startTime,
+          message: error instanceof Error ? error.message : String(error)
+        };
+      }
+    });
+
+    const results = await Promise.all(queryPromises);
+    const overallSuccess = results.some(r => r.success);
+
+    return {
+      success: overallSuccess,
+      results: results,
+      message: overallSuccess ? '' : 'All IP providers failed'
     };
   }
 }

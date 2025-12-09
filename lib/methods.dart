@@ -373,6 +373,45 @@ class Methods {
       );
     }
   }
+
+  /// 查询本机公网 IP 信息
+  Future<IpInfoResult> getMyIpInfo() async {
+    try {
+      final result = await _channel.invokeMethod('get_my_ip_info', {});
+      
+      final Map<String, dynamic> response = Map<String, dynamic>.from(result);
+      final List<dynamic> resultsJson = response['results'] ?? [];
+      
+      final providerResults = resultsJson.map((r) {
+        final providerMap = Map<String, dynamic>.from(r);
+        return IpProviderResult(
+          provider: providerMap['provider'] as String,
+          success: providerMap['success'] as bool,
+          ip: providerMap['ip'] as String? ?? '',
+          country: providerMap['country'] as String? ?? '',
+          region: providerMap['region'] as String? ?? '',
+          city: providerMap['city'] as String? ?? '',
+          isp: providerMap['isp'] as String? ?? '',
+          org: providerMap['org'] as String? ?? '',
+          latency: providerMap['latency'] as int? ?? 0,
+          message: providerMap['message'] as String? ?? '',
+        );
+      }).toList();
+      
+      return IpInfoResult(
+        success: response['success'] as bool,
+        results: providerResults,
+        message: response['message'] as String? ?? '',
+      );
+    } catch (e) {
+      AppLogger.error('Get IP info failed', error: e);
+      return IpInfoResult(
+        success: false,
+        results: [],
+        message: 'Error: $e',
+      );
+    }
+  }
 }
 
 /// HTTP 204 单个路由结果
@@ -442,6 +481,46 @@ class DnsResult {
     required this.type,
     required this.success,
     required this.addresses,
+    required this.results,
+    required this.message,
+  });
+}
+
+/// IP 信息提供商结果
+class IpProviderResult {
+  final String provider;
+  final bool success;
+  final String ip;
+  final String country;
+  final String region;
+  final String city;
+  final String isp;
+  final String org;
+  final int latency;
+  final String message;
+
+  const IpProviderResult({
+    required this.provider,
+    required this.success,
+    required this.ip,
+    required this.country,
+    required this.region,
+    required this.city,
+    required this.isp,
+    required this.org,
+    required this.latency,
+    required this.message,
+  });
+}
+
+/// IP 信息查询结果
+class IpInfoResult {
+  final bool success;
+  final List<IpProviderResult> results;
+  final String message;
+
+  const IpInfoResult({
+    required this.success,
     required this.results,
     required this.message,
   });

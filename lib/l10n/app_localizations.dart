@@ -481,6 +481,18 @@ class AppLocalizations {
     'resolved_addresses': {'en': 'Resolved Addresses', 'zh': '解析地址'},
     'provider_results': {'en': 'Provider Results', 'zh': '各服务商结果'},
     'result': {'en': 'Result', 'zh': '结果'},
+    
+    // 本机 IP 查询
+    'my_ip': {'en': 'My IP', 'zh': '我的 IP'},
+    'my_ip_desc': {'en': 'Query your public IP address and location', 'zh': '查询您的公网 IP 地址和位置'},
+    'country': {'en': 'Country', 'zh': '国家'},
+    'region': {'en': 'Region', 'zh': '地区'},
+    'city': {'en': 'City', 'zh': '城市'},
+    'isp': {'en': 'ISP', 'zh': '运营商'},
+    'organization': {'en': 'Organization', 'zh': '组织'},
+    'query_failed': {'en': 'Query Failed', 'zh': '查询失败'},
+    'retry': {'en': 'Retry', 'zh': '重试'},
+    'copied_to_clipboard': {'en': 'Copied to clipboard', 'zh': '已复制到剪贴板'},
   };
 }
 
