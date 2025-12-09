@@ -493,6 +493,14 @@ class AppLocalizations {
     'query_failed': {'en': 'Query Failed', 'zh': '查询失败'},
     'retry': {'en': 'Retry', 'zh': '重试'},
     'copied_to_clipboard': {'en': 'Copied to clipboard', 'zh': '已复制到剪贴板'},
+    
+    // API 测试历史
+    'records': {'en': 'records', 'zh': '条记录'},
+    'clear_all': {'en': 'Clear All', 'zh': '清空'},
+    'confirm_delete_history': {'en': 'Are you sure you want to delete this history record?', 'zh': '确定要删除这条历史记录吗？'},
+    'confirm_clear_all_history': {'en': 'Are you sure you want to clear all history records? This action cannot be undone.', 'zh': '确定要清空所有历史记录吗？此操作不可撤销。'},
+    'history_deleted': {'en': 'History record deleted', 'zh': '历史记录已删除'},
+    'history_cleared': {'en': 'All history cleared', 'zh': '历史记录已清空'},
   };
 }
 

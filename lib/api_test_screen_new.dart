@@ -784,199 +784,510 @@ class _ApiTestScreenState extends State<ApiTestScreen> with SingleTickerProvider
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: _history.length,
-      reverse: true,
-      itemBuilder: (context, index) {
-        final history = _history[_history.length - 1 - index];
-        final statusColor = history.statusCode >= 200 && history.statusCode < 300
-            ? Colors.green
-            : (history.statusCode >= 400 ? Colors.red : Colors.orange);
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: colorScheme.outline.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            childrenPadding: const EdgeInsets.all(16),
-            leading: _buildMethodChip(history.request.method),
-            title: Text(
-              history.request.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+    return Column(
+      children: [
+        // 顶部操作栏
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${_history.length} ${t('records')}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurface.withOpacity(0.5),
+                ),
               ),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    history.request.url,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colorScheme.onSurface.withOpacity(0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
+              InkWell(
+                onTap: _clearAllHistory,
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: statusColor.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              history.statusCode >= 200 && history.statusCode < 300
-                                  ? Icons.check_circle_outline
-                                  : Icons.error_outline,
-                              size: 14,
-                              color: statusColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${history.statusCode}',
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
+                      Icon(
+                        Icons.delete_outline,
+                        size: 14,
+                        color: colorScheme.onSurface.withOpacity(0.4),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.timer_outlined,
-                              size: 14,
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${history.duration}ms',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurface.withOpacity(0.7),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.access_time_outlined,
-                              size: 14,
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatDateTime(history.timestamp),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurface.withOpacity(0.7),
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: 4),
+                      Text(
+                        t('clear_all'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withOpacity(0.5),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.outline.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.code_outlined,
-                          size: 18,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          t('response_body'),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SelectableText(
-                      history.responseBody.length > 1000
-                          ? '${history.responseBody.substring(0, 1000)}...'
-                          : history.responseBody,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 12,
-                        color: colorScheme.onSurface,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
           ),
-        );
-      },
+        ),
+        Divider(height: 1, color: colorScheme.outline.withOpacity(0.1)),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: _history.length,
+            reverse: true,
+            itemBuilder: (context, index) {
+              final history = _history[_history.length - 1 - index];
+              final statusColor = history.statusCode >= 200 && history.statusCode < 300
+                  ? Colors.green
+                  : (history.statusCode >= 400 ? Colors.red : Colors.orange);
+
+              return Dismissible(
+                key: Key('${history.timestamp.millisecondsSinceEpoch}'),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                ),
+                onDismissed: (direction) {
+                  _deleteHistoryItem(history);
+                },
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: colorScheme.outline.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: InkWell(
+                    onTap: () => _showHistoryDetail(history),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _buildMethodChip(history.request.method),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  history.request.name,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              // IconButton(
+                              //   icon: Icon(
+                              //     Icons.delete_outline,
+                              //     size: 20,
+                              //     color: colorScheme.onSurface.withOpacity(0.5),
+                              //   ),
+                              //   onPressed: () => _confirmDeleteHistory(history),
+                              //   padding: EdgeInsets.zero,
+                              //   constraints: const BoxConstraints(),
+                              // ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            history.request.url,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: statusColor.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      history.statusCode >= 200 && history.statusCode < 300
+                                          ? Icons.check_circle_outline
+                                          : Icons.error_outline,
+                                      size: 14,
+                                      color: statusColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${history.statusCode}',
+                                      style: TextStyle(
+                                        color: statusColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.timer_outlined,
+                                      size: 14,
+                                      color: colorScheme.onSurface.withOpacity(0.6),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${history.duration}ms',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.onSurface.withOpacity(0.7),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.access_time_outlined,
+                                      size: 14,
+                                      color: colorScheme.onSurface.withOpacity(0.6),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _formatDateTime(history.timestamp),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.onSurface.withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
+  void _showHistoryDetail(ApiTestHistory history) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final statusColor = history.statusCode >= 200 && history.statusCode < 300
+        ? Colors.green
+        : (history.statusCode >= 400 ? Colors.red : Colors.orange);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: Text(history.request.name),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _confirmDeleteHistory(history);
+                },
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 概览卡片
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: colorScheme.outline.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            _buildMethodChip(history.request.method),
+                            const SizedBox(width: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${history.statusCode}',
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${history.duration}ms',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SelectableText(
+                          history.request.url,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _formatDateTime(history.timestamp),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 请求头
+                if (history.request.headers.isNotEmpty) ...[
+                  _buildDetailSection(
+                    title: t('headers'),
+                    icon: Icons.list_alt,
+                    child: Column(
+                      children: history.request.headers.entries.map((e) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${e.key}: ',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            Expanded(
+                              child: SelectableText(
+                                e.value,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // 请求体
+                if (history.request.body.isNotEmpty) ...[
+                  _buildDetailSection(
+                    title: t('request_body'),
+                    icon: Icons.send,
+                    child: SelectableText(
+                      history.request.body,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 13,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // 响应体
+                _buildDetailSection(
+                  title: t('response_body'),
+                  icon: Icons.code,
+                  child: SelectableText(
+                    history.responseBody,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailSection({
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeleteHistory(ApiTestHistory history) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t('confirm_delete')),
+        content: Text(t('confirm_delete_history')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(t('cancel')),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteHistoryItem(history);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(t('delete')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteHistoryItem(ApiTestHistory history) async {
+    setState(() {
+      _history.removeWhere((h) => h.timestamp == history.timestamp);
+    });
+    await ApiRequestStorage.saveHistory(_history);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t('history_deleted'))),
+      );
+    }
+  }
+
+  void _clearAllHistory() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t('confirm_delete')),
+        content: Text(t('confirm_clear_all_history')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(t('cancel')),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              setState(() {
+                _history.clear();
+              });
+              await ApiRequestStorage.clearHistory();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(t('history_cleared'))),
+                );
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(t('clear')),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildMethodChip(String method) {
     Color color;
