@@ -472,8 +472,8 @@ class AppLocalizations {
     
     // 网络工具 - 204检测和DNS
     'connectivity': {'en': 'Connectivity', 'zh': '连通性'},
-    'connectivity_test': {'en': 'Connectivity Test', 'zh': '连通性测试'},
-    'connectivity_test_desc': {'en': 'Test network connectivity to multiple providers', 'zh': '测试到多个服务商的网络连通性'},
+    'connectivity_test': {'en': 'Connectivity Test', 'zh': '网速测试'},
+    'connectivity_test_desc': {'en': 'Test network connectivity to multiple providers', 'zh': '测试到多个服务商的网络连通性/延迟'},
     'checking': {'en': 'Checking...', 'zh': '检测中...'},
     'start_check': {'en': 'Start Check', 'zh': '开始检测'},
     'routes_reachable': {'en': 'routes reachable', 'zh': '个线路可达'},
@@ -521,4 +521,3 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   @override
   bool shouldReload(AppLocalizationsDelegate old) => false;
 }
-

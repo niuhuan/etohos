@@ -48,3 +48,6 @@ app.*.map.json
 *.g.dart
 
 scripts/
+
+.fvm
+.fvmrc

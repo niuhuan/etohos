@@ -4,7 +4,13 @@ import { HttpUtils, HttpResponse } from '../utils/HttpUtils';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { vpnExtension } from '@kit.NetworkKit';
 import { Want, WantAgent, wantAgent, AbilityConstant } from '@kit.AbilityKit';
-import { collectNetworkInfos, runNetworkInstance, setTunFd, stopNetworkInstance } from 'easyiter-ohrs';
+import {
+  collectNetworkInfos,
+  convertTomlToNetworkConfig,
+  runNetworkInstance,
+  setTunFd,
+  stopNetworkInstance
+} from 'easyiter-ohrs';
 import { backgroundTaskManager } from '@kit.BackgroundTasksKit';
 import { BusinessError, deviceInfo } from "@kit.BasicServicesKit";
 import { promptAction } from '@kit.ArkUI';
@@ -21,6 +27,7 @@ import { scanBarcode, scanCore, generateBarcode } from '@kit.ScanKit';
 import { buffer } from '@kit.ArkTS';
 import distributedDeviceManager from '@ohos.distributedDeviceManager';
 import distributedKVStore from '@ohos.data.distributedKVStore';
+import { PermissionUtil } from '@pura/harmony-utils';
 
 let vpnWant: Want = {
   deviceId: "",
@@ -203,7 +210,7 @@ export default class EntryAbility extends FlutterAbility {
     }
   }
 
-  syncCallback(data: distributedKVStore.ChangeNotification){
+  syncCallback(data: distributedKVStore.ChangeNotification) {
     hilog.info(0x0000, 'kvStore', '收到数据同步:', data)
     data.insertEntries.forEach((e) => {
       hilog.info(0x0000, 'kvStore', `同步数据: ${data.deviceId} insertEntries => ${e.key} = ${e.value}`)
@@ -225,30 +232,6 @@ export default class EntryAbility extends FlutterAbility {
     this.initKVStore();
     // 如果是手机则需要开启地理位置
     let value = this.context.resourceManager.getDeviceCapabilitySync();
-    let deviceType = value.deviceType;
-
-    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
-      resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
-      this.addToStatusBar(
-        this.context,
-      );
-    } else {
-    }
-    let atManager = abilityAccessCtrl.createAtManager();
-    try {
-      let p = atManager.requestPermissionsFromUser(
-        this.context,
-        ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION',
-          'ohos.permission.LOCATION_IN_BACKGROUND', 'ohos.permission.DISTRIBUTED_DATASYNC'])
-        .then((data) => {
-          hilog.info(0x0000, 'testTag', `data: ${JSON.stringify(data)}`);
-        })
-        .catch((err: BusinessError) => {
-          hilog.error(0x0000, 'testTag', `err: ${JSON.stringify(err)}`);
-        });
-    } catch (err) {
-      hilog.error(0x0000, 'testTag', `catch err->${JSON.stringify(err)}`);
-    }
   }
 
   /**
@@ -468,6 +451,43 @@ export default class EntryAbility extends FlutterAbility {
   }
 
   async connect_vpn(argsAll: Map<string, Any>) {
+
+    const permissions: Array<Permissions> = [
+      // 'ohos.permission.LOCATION',
+      'ohos.permission.APPROXIMATELY_LOCATION',
+      'ohos.permission.LOCATION_IN_BACKGROUND',
+      'ohos.permission.DISTRIBUTED_DATASYNC',
+    ];
+
+    let missingPermissions: Array<Permissions> = [];
+    for (const permission of permissions) {
+      const granted = await PermissionUtil.checkPermissions(permission);
+      if (!granted) {
+        missingPermissions.push(permission);
+      }
+    }
+
+    if (missingPermissions.length > 0) {
+      try {
+        const res = await PermissionUtil.requestPermissionsEasy(missingPermissions);
+        hilog.info(0x0000, 'permission', `res: ${JSON.stringify(res)}`);
+      } catch (err) {
+        hilog.error(0x0000, 'permission', `err: ${JSON.stringify(err)}`);
+      }
+
+      missingPermissions = [];
+      for (const permission of permissions) {
+        const granted = await PermissionUtil.checkPermissions(permission);
+        if (!granted) {
+          missingPermissions.push(permission);
+        }
+      }
+
+      if (missingPermissions.length > 0) {
+        throw Error(`permission denied: ${missingPermissions.join(', ')}`);
+      }
+    }
+
     if (isConnected) {
       throw Error("connected");
     }
@@ -531,10 +551,9 @@ export default class EntryAbility extends FlutterAbility {
 
     let peers = "";
     args.get("peers").forEach((element: string) => {
-      peers += `
-[[peer]]
+      peers += `[[peer]]
 uri = "${element}"
-      `
+`
     });
     let magic_dns = false;
     let flags = "";
@@ -542,8 +561,7 @@ uri = "${element}"
       flags +=
       "accept_dns = true\n";
     }
-    const etConfigString = `
-instance_id = "${args.get("instanceId")}"
+    const etConfigString = `instance_id = "${args.get("instanceId")}"
 instance_name = "${args.get("instanceName")}"
 hostname = "${args.get("hostname")}"
 listeners = []
@@ -557,9 +575,11 @@ ${peers}
 [flags]
 dev_name = "vpn-tun"
 mtu = 1500
-    `;
+${flags}
+`;
     running_inst = args.get("instanceId");
-    if (runNetworkInstance(etConfigString)) {
+    let jsonCfg = convertTomlToNetworkConfig(etConfigString);
+    if (runNetworkInstance(jsonCfg)) {
       hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] Successfully started")
     } else {
       hilog.warn(0, 'onMethodCall', '%{public}s', "[EntryAbi] Failed to start")
@@ -709,7 +729,7 @@ mtu = 1500
       if (lastTotalRx > 0 && lastTotalTx > 0) {
         // Extract routes from peer_route_pairs
         let routes: Route[] = infos.peer_route_pairs.map((pair) => pair.route);
-        
+
         let networkData: NetworkData = {
           timestamp: Date.now(),
           rxBytes: rxDelta,
@@ -834,7 +854,7 @@ mtu = 1500
     await this.kvStore.sync([deviceId], distributedKVStore.SyncMode.PULL_ONLY, 1000);
 
     let es = await this.kvStore.getEntries("shared");
-    es.forEach((e)=> {
+    es.forEach((e) => {
       hilog.info(0x0000, 'kvStore', `${e.key} ====> ${e.value}`);
     });
 
@@ -872,7 +892,7 @@ mtu = 1500
     try {
       let value = this.context.resourceManager.getDeviceCapabilitySync();
       let deviceType = value.deviceType;
-      
+
       // DEVICE_TYPE_PHONE = 0x00
       // DEVICE_TYPE_TABLET = 0x11
       if (resourceManager.DeviceType.DEVICE_TYPE_TABLET == deviceType) {
@@ -1058,7 +1078,7 @@ mtu = 1500
         const latency = Date.now() - startTime;
 
         const success = response.statusCode === route.expectedStatus ||
-                       (route.expectedStatus === 200 && response.statusCode >= 200 && response.statusCode < 300);
+          (route.expectedStatus === 200 && response.statusCode >= 200 && response.statusCode < 300);
 
         return {
           name: route.name,
@@ -1123,7 +1143,7 @@ mtu = 1500
 
         if (response.statusCode === 200) {
           const data = JSON.parse(response.body) as Record<string, string>;
-          
+
           // Parse different API response formats
           let ip = '';
           let country = '';

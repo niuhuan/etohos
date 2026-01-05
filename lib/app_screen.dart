@@ -7,8 +7,12 @@ import 'package:etohos/settings_screen.dart';
 import 'package:etohos/app_data.dart';
 import 'package:etohos/network_status.dart';
 import 'package:etohos/log_viewer.dart';
+import 'package:etohos/api_test_screen_new.dart';
+import 'package:etohos/manual_screen.dart';
 import 'package:etohos/privacy_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
+import 'package:etohos/tools/connectivity_test_screen.dart';
+import 'package:etohos/tools/dns_lookup_screen.dart';
 import 'package:etohos/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -16,6 +20,14 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'l10n/locale_provider.dart';
 import 'l10n/theme_provider.dart';
 import 'methods.dart';
+
+enum _HomeToolAction {
+  apiTest,
+  dnsLookup,
+  connectivityTest,
+  logViewer,
+  about,
+}
 
 class AppScreen extends StatefulWidget {
   const AppScreen({super.key});
@@ -27,6 +39,89 @@ class AppScreen extends StatefulWidget {
 class _AppScreenState extends State<AppScreen> {
   bool _isConnecting =
       AppData.connected; // Loading state for connection operations
+
+  void _openTool(_HomeToolAction action) {
+    Widget screen;
+    switch (action) {
+      case _HomeToolAction.apiTest:
+        screen = const ApiTestScreen();
+        break;
+      case _HomeToolAction.dnsLookup:
+        screen = const DnsLookupScreen();
+        break;
+      case _HomeToolAction.connectivityTest:
+        screen = const ConnectivityTestScreen();
+        break;
+      case _HomeToolAction.logViewer:
+        screen = const LogViewer();
+        break;
+      case _HomeToolAction.about:
+        screen = const ManualScreen();
+        break;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => screen),
+    );
+  }
+
+  Widget _buildToolsMenu() {
+    return PopupMenuButton<_HomeToolAction>(
+      tooltip: t('tools'),
+      icon: const Icon(Icons.apps_outlined),
+      onSelected: _openTool,
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: _HomeToolAction.apiTest,
+          child: Builder(
+            builder: (context) => _toolMenuRow(context, Icons.api, t('api_test')),
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: _HomeToolAction.dnsLookup,
+          child: Builder(
+            builder: (context) =>
+                _toolMenuRow(context, Icons.dns, t('dns_lookup')),
+          ),
+        ),
+        PopupMenuItem(
+          value: _HomeToolAction.connectivityTest,
+          child: Builder(
+            builder: (context) =>
+                _toolMenuRow(context, Icons.speed, t('connectivity_test')),
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: _HomeToolAction.logViewer,
+          child: Builder(
+            builder: (context) =>
+                _toolMenuRow(context, Icons.history_outlined, t('events')),
+          ),
+        ),
+        PopupMenuItem(
+          value: _HomeToolAction.about,
+          child: Builder(
+            builder: (context) =>
+                _toolMenuRow(context, Icons.info_outline, t('about')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _toolMenuRow(BuildContext context, IconData icon, String label) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = DefaultTextStyle.of(context).style.color ?? colorScheme.onSurface;
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 10),
+        Text(label),
+      ],
+    );
+  }
 
   @override
   void initState() {
@@ -73,7 +168,13 @@ class _AppScreenState extends State<AppScreen> {
           AppData.connected = false;
         });
       }
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error(
+        'Toggle VPN failed',
+        tag: 'UI',
+        error: e,
+        stackTrace: st,
+      );
       final errorKey =
           AppData.connected ? 'failed_to_disconnect' : 'failed_to_connect';
       ScaffoldMessenger.of(context).showSnackBar(
@@ -708,19 +809,7 @@ class _AppScreenState extends State<AppScreen> {
         ),
         // 移除渐变色，使用主题定义的backgroundColor
         actions: [
-          // 事件按钮 - 仅在非隐私政策模式下显示
-          if (!enablePrivacyPolicy)
-            IconButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const LogViewer(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.history),
-              tooltip: t('events'),
-            ),
+          _buildToolsMenu(),
           // 设置按钮 - 仅在非隐私政策模式下显示
           IconButton(
             onPressed: _openSettings,
