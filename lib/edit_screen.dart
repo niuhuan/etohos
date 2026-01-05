@@ -3,6 +3,7 @@ import 'package:etohos/et_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/methods.dart';
 import 'package:etohos/utils/text_field_utils.dart';
+import 'package:etohos/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -465,39 +466,21 @@ class _EditScreenState extends State<EditScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                widget.source == null ? Icons.add_box : Icons.edit,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
+        title:
             Text(widget.source == null ? t('add_configuration') : t('edit_configuration')),
-          ],
-        ),
-        // 移除渐变色，使用主题定义的backgroundColor
         actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TextButton.icon(
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton.icon(
               onPressed: _saveConfig,
-              icon: const Icon(Icons.check, color: Colors.white, size: 18),
-              label: Text(
-                t('save'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              icon: const Icon(Icons.check, size: 18),
+              label: Text(t('save')),
+              style: FilledButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
@@ -546,7 +529,7 @@ class _EditScreenState extends State<EditScreen> {
               const SizedBox(height: 16),
               
               // 基本信息分组
-              _buildSectionHeader(context, t('basic_info'), Icons.info_outline),
+              SectionHeader(title: t('basic_info'), icon: Icons.info_outline),
               const SizedBox(height: 12),
               
               // Instance ID (read-only)
@@ -642,7 +625,9 @@ class _EditScreenState extends State<EditScreen> {
               const SizedBox(height: 24),
               
               // Peers section
-              _buildSectionHeader(context, t('peers'), Icons.group, 
+              SectionHeader(
+                title: t('peers'),
+                icon: Icons.group,
                 action: IconButton(
                   onPressed: _addPeer,
                   icon: const Icon(Icons.add_circle_outline),
@@ -716,7 +701,7 @@ class _EditScreenState extends State<EditScreen> {
               const SizedBox(height: 24),
               
               // Advanced Settings section
-              _buildSectionHeader(context, t('advanced_settings'), Icons.tune),
+              SectionHeader(title: t('advanced_settings'), icon: Icons.tune),
               const SizedBox(height: 8),
 
               // DHCP
@@ -892,43 +877,6 @@ class _EditScreenState extends State<EditScreen> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon, {Widget? action}) {
-    final colorScheme = Theme.of(context).colorScheme;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primaryContainer.withOpacity(0.5),
-            colorScheme.secondaryContainer.withOpacity(0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.primary.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: colorScheme.primary, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
-            ),
-          ),
-          const Spacer(),
-          if (action != null) action,
-        ],
-      ),
-    );
-  }
-
   Widget _buildModernSwitch(
     BuildContext context, {
     required String title,
@@ -995,4 +943,3 @@ class _EditScreenState extends State<EditScreen> {
     );
   }
 }
-

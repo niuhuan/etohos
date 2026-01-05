@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:etohos/methods.dart';
+import 'package:etohos/utils/logger.dart';
 
 /// 主题模式 Signal
 final themeModeSignal = signal<ThemeMode>(ThemeMode.system);
 
 /// 设置主题模式（'system', 'light', 'dark'）
 Future<void> setThemeMode(String mode) async {
-  // 保存到Settings
-  final settings = await methods.loadSettings();
-  final updatedSettings = settings.copyWith(themeMode: mode);
-  await methods.saveSettings(updatedSettings);
-  
-  // 更新主题模式
   _updateThemeMode(mode);
+
+  // 保存到Settings（失败也不影响本次切换）
+  try {
+    final settings = await methods.loadSettings();
+    final updatedSettings = settings.copyWith(themeMode: mode);
+    await methods.saveSettings(updatedSettings);
+  } catch (e, st) {
+    AppLogger.error('Failed to persist theme mode', tag: 'THEME', error: e, stackTrace: st);
+  }
 }
 
 /// 初始化主题设置
@@ -50,4 +54,3 @@ String getCurrentThemeName(String mode) {
       return 'Follow System';
   }
 }
-

@@ -9,7 +9,6 @@ import 'package:etohos/network_status.dart';
 import 'package:etohos/log_viewer.dart';
 import 'package:etohos/api_test_screen_new.dart';
 import 'package:etohos/manual_screen.dart';
-import 'package:etohos/privacy_config.dart';
 import 'package:etohos/l10n/l10n_extensions.dart';
 import 'package:etohos/tools/connectivity_test_screen.dart';
 import 'package:etohos/tools/dns_lookup_screen.dart';
@@ -29,6 +28,12 @@ enum _HomeToolAction {
   about,
 }
 
+enum _ConfigAction {
+  shareQr,
+  edit,
+  delete,
+}
+
 class AppScreen extends StatefulWidget {
   const AppScreen({super.key});
 
@@ -39,6 +44,134 @@ class AppScreen extends StatefulWidget {
 class _AppScreenState extends State<AppScreen> {
   bool _isConnecting =
       AppData.connected; // Loading state for connection operations
+
+  Widget _buildBottomActionBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final canTap = !(AppData.configs.isEmpty || _isConnecting);
+    final isConnected = AppData.connected;
+
+    final label = _isConnecting
+        ? t('switching_config')
+        : (isConnected ? t('disconnect_vpn') : t('connect_vpn'));
+    // 使用更柔和的容器颜色，而不是直接使用 primary 和 error
+    final backgroundColor = isConnected 
+        ? colorScheme.errorContainer 
+        : colorScheme.primaryContainer;
+    final foregroundColor =
+        isConnected ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer;
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: SizedBox(
+          height: 48,
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: canTap ? _toggleConnection : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: backgroundColor,
+              foregroundColor: foregroundColor,
+              disabledBackgroundColor: colorScheme.onSurface.withOpacity(0.12),
+              disabledForegroundColor: colorScheme.onSurface.withOpacity(0.45),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_isConnecting)
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: foregroundColor,
+                    ),
+                  )
+                else
+                  Icon(
+                    isConnected ? Icons.stop : Icons.play_arrow,
+                    color: foregroundColor,
+                  ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: foregroundColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withOpacity(0.8),
+                  width: 0.8,
+                ),
+              ),
+              child: Icon(
+                Icons.inventory_2_outlined,
+                size: 34,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              t('no_configs_title'),
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              t('no_configs_desc'),
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurface.withOpacity(0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _addConfig,
+                icon: const Icon(Icons.add),
+                label: Text(t('add_config_tooltip')),
+                style: ElevatedButton.styleFrom(elevation: 0),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _openTool(_HomeToolAction action) {
     Widget screen;
@@ -471,300 +604,301 @@ class _AppScreenState extends State<AppScreen> {
   Widget _buildModernConfigCard(
       BuildContext context, EtConfig config, bool isSelected) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final disabledActions = AppData.connected && isSelected;
 
-    // 配色方案
-    final cardColor = isDark
-        ? (isSelected
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceVariant)
-        : (isSelected ? colorScheme.primaryContainer : colorScheme.surface);
+    final backgroundColor = isSelected
+        ? colorScheme.primaryContainer.withOpacity(0.35)
+        : colorScheme.surface;
 
-    final borderColor = isSelected ? colorScheme.primary : Colors.transparent;
-    final textColor =
-        isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface;
-    final subtitleColor = isSelected
-        ? colorScheme.onPrimaryContainer.withOpacity(0.7)
-        : colorScheme.onSurfaceVariant;
+    void onTapCard() {
+      if (AppData.connected && isSelected) {
+        return;
+      }
 
-    return Container(
+      if (AppData.connected && !isSelected) {
+        _switchToConfig(config);
+      } else {
+        setState(() {
+          AppData.selectedConfig = config;
+        });
+      }
+    }
+
+    return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
+      color: backgroundColor,
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: isSelected
-                ? colorScheme.primary.withOpacity(0.2)
-                : Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-            blurRadius: isSelected ? 8 : 4,
-            offset: Offset(0, isSelected ? 3 : 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            if (AppData.connected && isSelected) {
-              return;
-            }
-
-            if (AppData.connected && !isSelected) {
-              _switchToConfig(config);
-            } else {
-              setState(() {
-                AppData.selectedConfig = config;
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: borderColor,
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-// 图标
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? (isDark
-                                      ? const Color(0xFF334155)
-                                      : colorScheme.primary) // 暗色主题用深灰蓝
-                                  : (isDark
-                                      ? colorScheme.surface
-                                      : colorScheme.surfaceVariant),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: (isDark
-                                            ? const Color(0xFF334155)
-                                                .withOpacity(0.3)
-                                            : colorScheme.primary
-                                                .withOpacity(0.3)),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ]
-                                  : null,
+        onTap: onTapCard,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildConfigLeadingIcon(isSelected),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                config.instanceName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.onSurface,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            child: Icon(
-                              isSelected
-                                  ? Icons.check_circle
-                                  : Icons.router_outlined,
-                              color: isSelected
-                                  ? (isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : Colors.white) // 暗色主题用柔和的灰蓝
-                                  : colorScheme.primary,
-                              size: 24,
+                            if (AppData.connected && isSelected) ...[
+                              const SizedBox(width: 8),
+                              _buildStatusPill(
+                                label: t('connected'),
+                                color: Colors.green,
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          config.networkName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _buildPeersPill(config.peers.length),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFlagChip('DHCP', config.dhcp),
+                          const SizedBox(width: 8),
+                          _buildFlagChip('KCP', config.enableKcpProxy),
+                          const SizedBox(width: 8),
+                          _buildFlagChip('QUIC', config.enableQuicProxy),
+                          const SizedBox(width: 8),
+                          _buildFlagChip('Private', config.privateMode),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                      PopupMenuButton<_ConfigAction>(
+                        tooltip: t('tools'),
+                        icon: const Icon(Icons.more_horiz),
+                        onSelected: (action) {
+                          switch (action) {
+                            case _ConfigAction.shareQr:
+                              _shareConfig(config);
+                              break;
+                            case _ConfigAction.edit:
+                              _editConfig(config);
+                              break;
+                            case _ConfigAction.delete:
+                              _deleteConfig(config);
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: _ConfigAction.shareQr,
+                            child: Row(
+                              children: [
+                                Icon(Icons.qr_code, size: 18, color: colorScheme.onSurface),
+                                const SizedBox(width: 10),
+                                Text(t('share_qr')),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 12),
-
-// 标题和hostname
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          PopupMenuItem(
+                            value: _ConfigAction.edit,
+                            child: Row(
                               children: [
+                                Icon(Icons.edit, size: 18, color: colorScheme.onSurface),
+                                const SizedBox(width: 10),
+                                Text(t('edit')),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: _ConfigAction.delete,
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, size: 18, color: colorScheme.error),
+                                const SizedBox(width: 10),
                                 Text(
-                                  config.instanceName,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: textColor,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  config.networkName,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: subtitleColor,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  t('delete'),
+                                  style: TextStyle(color: colorScheme.error),
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "DHCP:${config.dhcp ? '✓' : '✗'}" +
-                              " | " +
-                              "KCP:${config.enableKcpProxy ? '✓' : '✗'}" +
-                              "\n" +
-                              "QUIC:${config.enableQuicProxy ? '✓' : '✗'}" +
-                              " | " +
-                              "Private:${config.privateMode ? '✓' : '✗'}",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: subtitleColor.withOpacity(0.6),
-                            fontFamily: 'monospace',
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      children: [
-// 分享二维码按钮
-                        IconButton(
-                          onPressed: () => _shareConfig(config),
-                          icon: Icon(
-                            Icons.qr_code_2,
-                            size: 20,
-                            color: colorScheme.primary,
-                          ),
-                          tooltip: t('share_qr'),
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: 4),
-// 右上角：节点数量或连接状态
-                        if (AppData.connected && isSelected)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.green, width: 1),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  t('connected'),
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-// 节点数量
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: (isDark
-                                      ? colorScheme.surface
-                                      : colorScheme.surfaceVariant)
-                                  .withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.lan,
-                                  size: 14,
-                                  color: subtitleColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${config.peers.length}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: subtitleColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-
-// 底部：操作按钮（右对齐）
-                    Row(
-                      children: [
-// 删除按钮
-                        IconButton(
-                          onPressed: (AppData.connected && isSelected)
-                              ? null
-                              : () => _deleteConfig(config),
-                          icon: Icon(
-                            Icons.delete_outline,
-                            size: 20,
-                            color: (AppData.connected && isSelected)
-                                ? subtitleColor.withOpacity(0.3)
-                                : Colors.red,
-                          ),
-                          tooltip: (AppData.connected && isSelected)
-                              ? t('cannot_delete_active')
-                              : t('delete'),
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: 4),
-// 编辑按钮
-                        IconButton(
-                          onPressed: (AppData.connected && isSelected)
-                              ? null
-                              : () => _editConfig(config),
-                          icon: Icon(
-                            Icons.edit_outlined,
-                            size: 20,
-                            color: (AppData.connected && isSelected)
-                                ? subtitleColor.withOpacity(0.3)
-                                : colorScheme.primary,
-                          ),
-                          tooltip: (AppData.connected && isSelected)
-                              ? t('cannot_edit_active')
-                              : t('edit'),
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  const SizedBox(width: 12),
+                ],
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildConfigLeadingIcon(bool isSelected) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final bgColor = isSelected
+        ? colorScheme.primary.withOpacity(0.12)
+        : colorScheme.surfaceContainerHighest.withOpacity(0.55);
+    final fgColor = isSelected ? colorScheme.primary : colorScheme.onSurface;
+
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.8),
+          width: 0.8,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        isSelected ? Icons.check_circle_outline : Icons.router_outlined,
+        color: fgColor.withOpacity(isSelected ? 1.0 : 0.8),
+        size: 22,
+      ),
+    );
+  }
+
+  Widget _buildFlagChip(String label, bool enabled) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final bg = enabled
+        ? colorScheme.primary.withOpacity(0.08)
+        : colorScheme.surfaceContainerHighest.withOpacity(0.45);
+    final fg = enabled
+        ? colorScheme.primary
+        : colorScheme.onSurface.withOpacity(0.65);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            enabled ? Icons.check : Icons.close,
+            size: 14,
+            color: fg,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeersPill(int peers) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.45),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.7),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.lan,
+            size: 14,
+            color: colorScheme.onSurface.withOpacity(0.7),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$peers',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface.withOpacity(0.75),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusPill({required String label, required Color color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.55), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -793,21 +927,32 @@ class _AppScreenState extends State<AppScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: Center(
+            child: Container(
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outlineVariant
+                      .withOpacity(0.8),
+                  width: 0.8,
+                ),
               ),
-              child: const Icon(Icons.vpn_key, size: 20),
+              child: Icon(
+                Icons.vpn_key_outlined,
+                size: 18,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            const SizedBox(width: 12),
-            Text(t('app_name')),
-          ],
+          ),
         ),
-        // 移除渐变色，使用主题定义的backgroundColor
+        title: Text(t('app_name')),
         actions: [
           _buildToolsMenu(),
           // 设置按钮 - 仅在非隐私政策模式下显示
@@ -827,28 +972,7 @@ class _AppScreenState extends State<AppScreen> {
       body: useSplitLayout
           ? _buildSplitLayout(context)
           : _buildNormalLayout(context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (AppData.configs.isEmpty || _isConnecting)
-            ? null
-            : _toggleConnection,
-        tooltip: _isConnecting
-            ? t('switching_config')
-            : (AppData.connected ? t('disconnect_vpn') : t('connect_vpn')),
-        backgroundColor: _isConnecting
-            ? Colors.grey
-            : (AppData.connected ? Colors.red : Colors.green),
-        foregroundColor: Colors.white,
-        child: _isConnecting
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
-      ),
+      bottomNavigationBar: _buildBottomActionBar(),
     );
   }
 
@@ -861,30 +985,13 @@ class _AppScreenState extends State<AppScreen> {
         // Configurations list
         Expanded(
           child: AppData.configs.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.settings, size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text(
-                        t('no_configs_title'),
-                        style:
-                            const TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        t('no_configs_desc'),
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                )
+              ? _buildEmptyState()
               : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: AppData.configs.length + 1,
                   itemBuilder: (context, index) {
                     if (index == AppData.configs.length) {
-                      return SafeArea(child: Container(height: 100));
+                      return const SizedBox(height: 12);
                     }
                     final config = AppData.configs[index];
                     final isSelected =
@@ -921,30 +1028,13 @@ class _AppScreenState extends State<AppScreen> {
         Expanded(
           flex: 1,
           child: AppData.configs.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.settings, size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text(
-                        t('no_configs_title'),
-                        style:
-                            const TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        t('no_configs_desc'),
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                )
+              ? _buildEmptyState()
               : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: AppData.configs.length + 1,
                   itemBuilder: (context, index) {
                     if (index == AppData.configs.length) {
-                      return SafeArea(child: Container(height: 100));
+                      return const SizedBox(height: 12);
                     }
                     final config = AppData.configs[index];
                     final isSelected =

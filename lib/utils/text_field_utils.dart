@@ -37,70 +37,93 @@ Widget buildDefaultContextMenu(BuildContext context, EditableTextState editableT
       ? value.selection.textInside(value.text)
       : '';
 
+  // 构建子组件列表
+  final List<Widget> children = [];
+  
+  // 复制按钮（仅在有选择时显示）
+  if (hasSelection) {
+    children.add(
+      TextSelectionToolbarTextButton(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        onPressed: () {
+          // 使用应用内剪贴板
+          AppClipboard.setData(selectedText);
+          editableTextState.copySelection(SelectionChangedCause.toolbar);
+          editableTextState.hideToolbar();
+        },
+        child: Text(t('copy')),
+      ),
+    );
+  }
+  
+  // 剪切按钮（仅在有选择时显示）
+  if (hasSelection) {
+    children.add(
+      TextSelectionToolbarTextButton(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        onPressed: () {
+          // 使用应用内剪贴板
+          AppClipboard.setData(selectedText);
+          editableTextState.cutSelection(SelectionChangedCause.toolbar);
+          editableTextState.hideToolbar();
+        },
+        child: Text(t('cut')),
+      ),
+    );
+  }
+  
+  // 粘贴按钮（仅在剪贴板有内容时显示）
+  if (AppClipboard.hasData()) {
+    children.add(
+      TextSelectionToolbarTextButton(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        onPressed: () {
+          // 从应用内剪贴板获取数据并粘贴
+          final clipboardText = AppClipboard.getData();
+          final newText = value.text.replaceRange(
+            value.selection.start,
+            value.selection.end,
+            clipboardText,
+          );
+          editableTextState.userUpdateTextEditingValue(
+            TextEditingValue(
+              text: newText,
+              selection: TextSelection.collapsed(
+                offset: value.selection.start + clipboardText.length,
+              ),
+            ),
+            SelectionChangedCause.toolbar,
+          );
+          editableTextState.hideToolbar();
+        },
+        child: Text(t('paste')),
+      ),
+    );
+  }
+  
+  // 全选按钮（仅在文本不为空时显示）
+  if (value.text.isNotEmpty) {
+    children.add(
+      TextSelectionToolbarTextButton(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        onPressed: () {
+          editableTextState.selectAll(SelectionChangedCause.toolbar);
+          editableTextState.hideToolbar();
+        },
+        child: Text(t('select_all')),
+      ),
+    );
+  }
+
+  // 如果没有可用的操作，隐藏工具栏而不是创建空的工具栏
+  if (children.isEmpty) {
+    return const SizedBox.shrink();
+  }
+
   return TextSelectionToolbar(
     anchorAbove: editableTextState.contextMenuAnchors.primaryAnchor,
     anchorBelow: editableTextState.contextMenuAnchors.secondaryAnchor ?? editableTextState.contextMenuAnchors.primaryAnchor,
-    children: [
-      // 复制按钮（仅在有选择时显示）
-      if (hasSelection)
-        TextSelectionToolbarTextButton(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          onPressed: () {
-            // 使用应用内剪贴板
-            AppClipboard.setData(selectedText);
-            editableTextState.copySelection(SelectionChangedCause.toolbar);
-            editableTextState.hideToolbar();
-          },
-          child: Text(t('copy')),
-        ),
-      // 剪切按钮（仅在有选择时显示）
-      if (hasSelection)
-        TextSelectionToolbarTextButton(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          onPressed: () {
-            // 使用应用内剪贴板
-            AppClipboard.setData(selectedText);
-            editableTextState.cutSelection(SelectionChangedCause.toolbar);
-            editableTextState.hideToolbar();
-          },
-          child: Text(t('cut')),
-        ),
-      // 粘贴按钮（仅在剪贴板有内容时显示）
-      if (AppClipboard.hasData())
-        TextSelectionToolbarTextButton(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          onPressed: () {
-            // 从应用内剪贴板获取数据并粘贴
-            final clipboardText = AppClipboard.getData();
-            final newText = value.text.replaceRange(
-              value.selection.start,
-              value.selection.end,
-              clipboardText,
-            );
-            editableTextState.userUpdateTextEditingValue(
-              TextEditingValue(
-                text: newText,
-                selection: TextSelection.collapsed(
-                  offset: value.selection.start + clipboardText.length,
-                ),
-              ),
-              SelectionChangedCause.toolbar,
-            );
-            editableTextState.hideToolbar();
-          },
-          child: Text(t('paste')),
-        ),
-      // 全选按钮（仅在文本不为空时显示）
-      if (value.text.isNotEmpty)
-        TextSelectionToolbarTextButton(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          onPressed: () {
-            editableTextState.selectAll(SelectionChangedCause.toolbar);
-            editableTextState.hideToolbar();
-          },
-          child: Text(t('select_all')),
-        ),
-    ],
+    children: children,
   );
 }
 

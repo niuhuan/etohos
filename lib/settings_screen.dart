@@ -27,6 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _initializeControllers();
+    _refreshSettingsFromDisk();
   }
 
   void _initializeControllers() {
@@ -37,7 +38,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     
     // Initialize language and theme
     _selectedLanguage = localeSignal.value?.languageCode ?? 'zh';
-    _selectedTheme = settings?.themeMode ?? 'system';
+    // 不在这里初始化主题，等待从磁盘加载
+    _selectedTheme = 'system';
+  }
+
+  Future<void> _refreshSettingsFromDisk() async {
+    final settings = await methods.loadSettings();
+    if (!mounted) return;
+    setState(() {
+      _dnsList = settings.dnsList;
+      _selectedTheme = settings.themeMode;
+    });
   }
 
   @override
@@ -256,11 +267,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           
           // 自动保存
           await setThemeMode(_selectedTheme);
-          final settings = Settings(
-            dnsList: _dnsList,
-            themeMode: _selectedTheme,
-          );
-          await methods.saveSettings(settings);
         },
       ),
       title: Row(
@@ -283,11 +289,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         
         // 自动保存
         await setThemeMode(_selectedTheme);
-        final settings = Settings(
-          dnsList: _dnsList,
-          themeMode: _selectedTheme,
-        );
-        await methods.saveSettings(settings);
       },
     );
   }
@@ -607,4 +608,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-

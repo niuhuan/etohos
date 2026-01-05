@@ -115,14 +115,16 @@ class _ApiTestScreenState extends State<ApiTestScreen> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(t('api_test')),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white.withOpacity(0.7),
-          indicatorColor: Colors.white,
+          labelColor: colorScheme.onSurface,
+          unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
+          indicatorColor: colorScheme.primary,
           tabs: [
             Tab(icon: const Icon(Icons.list), text: t('saved_requests')),
             Tab(icon: const Icon(Icons.history), text: t('history')),

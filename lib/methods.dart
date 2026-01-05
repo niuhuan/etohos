@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:etohos/app_data.dart';
 import 'package:etohos/et_config.dart';
 import 'package:etohos/settings.dart';
 import 'package:etohos/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-const defaultDnsList = ['223.5.5.5', '223.6.6.6', '8.8.8.8', '8.8.4.4'];
 
 const methods = Methods._();
 
@@ -125,17 +124,23 @@ class Methods {
       
       if (!await file.exists()) {
         // Return default settings
-        return const Settings(dnsList: defaultDnsList);
+        final settings = const Settings(dnsList: defaultDnsList);
+        AppData.settings = settings;
+        return settings;
       }
       
       final jsonString = await file.readAsString();
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
       
-      return Settings.fromJson(json);
+      final settings = Settings.fromJson(json);
+      AppData.settings = settings;
+      return settings;
     } catch (e) {
       AppLogger.error('Error loading settings', error: e);
       // Return default settings on error
-      return const Settings(dnsList: defaultDnsList);
+      final settings = const Settings(dnsList: defaultDnsList);
+      AppData.settings = settings;
+      return settings;
     }
   }
 
@@ -146,6 +151,7 @@ class Methods {
       
       final jsonString = jsonEncode(settings.toJson());
       await file.writeAsString(jsonString);
+      AppData.settings = settings;
     } catch (e) {
       AppLogger.error('Error saving settings', error: e);
       throw Exception('Failed to save settings: $e');
@@ -647,4 +653,3 @@ class ConnectState {
     return isConnected.hashCode ^ runningInst.hashCode;
   }
 }
-

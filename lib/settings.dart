@@ -1,3 +1,5 @@
+const defaultDnsList = ['223.5.5.5', '223.6.6.6', '8.8.8.8', '8.8.4.4'];
+
 class Settings {
   final List<String> dnsList;
   final String themeMode; // 'system', 'light', 'dark'
@@ -9,8 +11,13 @@ class Settings {
 
   // Create object from JSON
   factory Settings.fromJson(Map<String, dynamic> json) {
+    final rawDnsList = json['dnsList'];
+    final dnsList = rawDnsList is List
+        ? rawDnsList.map((e) => e.toString()).toList()
+        : defaultDnsList;
+
     return Settings(
-      dnsList: List<String>.from(json['dnsList'] as List),
+      dnsList: dnsList,
       themeMode: (json['themeMode'] ?? 'system') as String,
     );
   }

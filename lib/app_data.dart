@@ -2,8 +2,6 @@ import 'package:etohos/et_config.dart';
 import 'package:etohos/settings.dart';
 import 'package:signals/signals.dart';
 
-import 'methods.dart';
-
 // Static data cache class
 class AppData {
   // 使用 Signal 使配置列表响应式
