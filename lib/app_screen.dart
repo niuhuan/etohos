@@ -972,7 +972,29 @@ class _AppScreenState extends State<AppScreen> {
       body: useSplitLayout
           ? _buildSplitLayout(context)
           : _buildNormalLayout(context),
-      bottomNavigationBar: _buildBottomActionBar(),
+      // bottomNavigationBar: _buildBottomActionBar(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (AppData.configs.isEmpty || _isConnecting)
+            ? null
+            : _toggleConnection,
+        tooltip: _isConnecting
+            ? t('switching_config')
+            : (AppData.connected ? t('disconnect_vpn') : t('connect_vpn')),
+        backgroundColor: _isConnecting
+            ? Colors.grey
+            : (AppData.connected ? Colors.red : Colors.green),
+        foregroundColor: Colors.white,
+        child: _isConnecting
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),111 
+              )
+            : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
+      ),
     );
   }
 

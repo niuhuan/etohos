@@ -459,32 +459,15 @@ export default class EntryAbility extends FlutterAbility {
       'ohos.permission.DISTRIBUTED_DATASYNC',
     ];
 
-    let missingPermissions: Array<Permissions> = [];
     for (const permission of permissions) {
       const granted = await PermissionUtil.checkPermissions(permission);
       if (!granted) {
-        missingPermissions.push(permission);
-      }
-    }
-
-    if (missingPermissions.length > 0) {
-      try {
-        const res = await PermissionUtil.requestPermissionsEasy(missingPermissions);
-        hilog.info(0x0000, 'permission', `res: ${JSON.stringify(res)}`);
-      } catch (err) {
-        hilog.error(0x0000, 'permission', `err: ${JSON.stringify(err)}`);
-      }
-
-      missingPermissions = [];
-      for (const permission of permissions) {
-        const granted = await PermissionUtil.checkPermissions(permission);
-        if (!granted) {
-          missingPermissions.push(permission);
+        try {
+          const res = await PermissionUtil.requestPermissionsEasy(permission);
+          hilog.info(0x0000, 'permission', `res: ${JSON.stringify(res)}`);
+        } catch (err) {
+          hilog.error(0x0000, 'permission', `err: ${JSON.stringify(err)}`);
         }
-      }
-
-      if (missingPermissions.length > 0) {
-        throw Error(`permission denied: ${missingPermissions.join(', ')}`);
       }
     }
 
