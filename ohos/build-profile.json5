@@ -1,20 +1,6 @@
 {
   "app": {
-    "signingConfigs": [
-      {
-        "name": "default",
-        "type": "HarmonyOS",
-        "material": {
-          "certpath": "/Users/niuhuan/.ohos/config/default_ohos_j2b8qnyCZMx8qsiWA4ihE0cWpFocrhMI1tD9Y527z5s=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001A817EF256BE055EC6FE08A15281998D5453986D9C365CC562D8628A48C8BA482D112212F756A4",
-          "profile": "/Users/niuhuan/.ohos/config/default_ohos_j2b8qnyCZMx8qsiWA4ihE0cWpFocrhMI1tD9Y527z5s=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "/Users/niuhuan/.ohos/config/default_ohos_j2b8qnyCZMx8qsiWA4ihE0cWpFocrhMI1tD9Y527z5s=.p12",
-          "storePassword": "0000001AE0B29526E572D2CEA1CBE60F1A4324F743797E4EF3B267165FA1E63081599E6D3686F643C5AD"
-        }
-      }
-    ],
+    "signingConfigs": [],
     "products": [
       {
         "name": "default",
