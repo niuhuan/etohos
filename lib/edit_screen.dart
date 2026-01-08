@@ -51,7 +51,13 @@ class _EditScreenState extends State<EditScreen> {
     
     _instanceIdController = TextEditingController(text: instanceId);
     _instanceNameController = TextEditingController(text: config?.instanceName ?? '');
-    _hostnameController = TextEditingController(text: config?.hostname ?? '');
+    // 如果是新建配置，自动获取设备名称作为主机名
+    if (config == null) {
+      _hostnameController = TextEditingController();
+      _loadDeviceName();
+    } else {
+      _hostnameController = TextEditingController(text: config.hostname ?? '');
+    }
     _networkNameController = TextEditingController(text: config?.networkName ?? '');
     _networkSecretController = TextEditingController(text: config?.networkSecret ?? '');
     
@@ -74,6 +80,17 @@ class _EditScreenState extends State<EditScreen> {
     _latencyFirst = config?.latencyFirst ?? false;
     _useSmoltcp = config?.useSmoltcp ?? false;
     _noTun = config?.noTun ?? false;
+  }
+
+  Future<void> _loadDeviceName() async {
+    try {
+      final deviceName = await methods.getDeviceName();
+      if (mounted && _hostnameController.text.isEmpty) {
+        _hostnameController.text = deviceName;
+      }
+    } catch (e) {
+      // 如果获取失败，保持为空，让用户手动输入
+    }
   }
 
   @override
@@ -168,10 +185,11 @@ class _EditScreenState extends State<EditScreen> {
         final config = EtConfig.fromJson(jsonData);
 
         // Fill in the form with scanned data
+        // Note: hostname, ipv4, and dhcp are device-specific and should not be imported
         setState(() {
           _instanceIdController.text = config.instanceId;
           _instanceNameController.text = config.instanceName;
-          _hostnameController.text = config.hostname;
+          // _hostnameController.text = config.hostname; // 不导入主机名，保持设备特定值
           _networkNameController.text = config.networkName;
           _networkSecretController.text = config.networkSecret;
           
@@ -184,8 +202,8 @@ class _EditScreenState extends State<EditScreen> {
             _peerControllers = [TextEditingController()];
           }
           
-          _ipv4Controller.text = config.ipv4;
-          _dhcp = config.dhcp;
+          // _ipv4Controller.text = config.ipv4; // 不导入IPv4地址，保持设备特定值
+          // _dhcp = config.dhcp; // 不导入DHCP设置，保持设备特定值
           _enableKcpProxy = config.enableKcpProxy;
           _disableKcpInput = config.disableKcpInput;
           _enableQuicProxy = config.enableQuicProxy;
@@ -400,10 +418,11 @@ class _EditScreenState extends State<EditScreen> {
         final jsonData = jsonDecode(configJson) as Map<String, dynamic>;
         final config = EtConfig.fromJson(jsonData);
 
+        // Note: hostname, ipv4, and dhcp are device-specific and should not be imported
         setState(() {
           _instanceIdController.text = config.instanceId;
           _instanceNameController.text = config.instanceName;
-          _hostnameController.text = config.hostname;
+          // _hostnameController.text = config.hostname; // 不导入主机名，保持设备特定值
           _networkNameController.text = config.networkName;
           _networkSecretController.text = config.networkSecret;
           
@@ -416,8 +435,8 @@ class _EditScreenState extends State<EditScreen> {
             _peerControllers = [TextEditingController()];
           }
           
-          _ipv4Controller.text = config.ipv4;
-          _dhcp = config.dhcp;
+          // _ipv4Controller.text = config.ipv4; // 不导入IPv4地址，保持设备特定值
+          // _dhcp = config.dhcp; // 不导入DHCP设置，保持设备特定值
           _enableKcpProxy = config.enableKcpProxy;
           _disableKcpInput = config.disableKcpInput;
           _enableQuicProxy = config.enableQuicProxy;

@@ -262,6 +262,17 @@ class Methods {
     }
   }
 
+  /// Get device name
+  Future<String> getDeviceName() async {
+    try {
+      final result = await _channel.invokeMethod("get_device_name");
+      return result as String? ?? "HarmonyOS Device";
+    } catch (e) {
+      AppLogger.error('Error getting device name', error: e);
+      return "HarmonyOS Device";
+    }
+  }
+
   /// Exit the application
   Future<void> exitApp() async {
     try {

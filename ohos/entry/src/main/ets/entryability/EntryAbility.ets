@@ -401,6 +401,9 @@ export default class EntryAbility extends FlutterAbility {
         case 'get_device_type':
           result.success(this.getDeviceType());
           break;
+        case 'get_device_name':
+          result.success(this.getDeviceName());
+          break;
         case 'exit_app':
           this.exitApp();
           result.success("");
@@ -888,6 +891,20 @@ ${flags}
     } catch (error) {
       hilog.error(0x0000, 'getDeviceType', 'Failed to get device type: ' + JSON.stringify(error));
       return 'phone'; // Default to phone
+    }
+  }
+
+  getDeviceName(): string {
+    try {
+      return deviceInfo.productModel || deviceInfo.marketName || 'HarmonyOS Device';
+    } catch (error) {
+      hilog.error(0x0000, 'getDeviceName', 'Failed to get device name: ' + JSON.stringify(error));
+      // Fallback to productModel
+      try {
+        return deviceInfo.productModel || 'HarmonyOS Device';
+      } catch (e) {
+        return 'HarmonyOS Device';
+      }
     }
   }
 
