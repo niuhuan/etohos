@@ -583,20 +583,20 @@ ${flags}
 
     let value = this.context.resourceManager.getDeviceCapabilitySync();
     let deviceType = value.deviceType;
-    let bgMod: string[] = [];
-    if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
-      resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
-      bgMod = [
-        "dataTransfer",
-        "taskKeeping"
-      ];
-    } else {
-      bgMod = [
-        "dataTransfer"
-      ];
-    }
+    // let bgMod: string[] = [];
+    // if (resourceManager.DeviceType.DEVICE_TYPE_PC == deviceType ||
+    //   resourceManager.DeviceType.DEVICE_TYPE_2IN1 == deviceType) {
+    //   bgMod = [
+    //     "dataTransfer",
+    //     "taskKeeping"
+    //   ];
+    // } else {
+    //   bgMod = [
+    //     "dataTransfer"
+    //   ];
+    // }
 
-    bgMod.push("location");
+    // bgMod.push("location");
     try {
       let request: geoLocationManager.ContinuousLocationRequest =
         { 'interval': 5, 'locationScenario': geoLocationManager.UserActivityScenario.NAVIGATION };
@@ -605,7 +605,7 @@ ${flags}
       hilog.error(0x0000, 'testTag', `catch err->${e}`);
     }
 
-    backgroundTaskManager.startBackgroundRunning(this.context, bgMod, agent).then(() => {
+    backgroundTaskManager.startBackgroundRunning(this.context, backgroundTaskManager.BackgroundMode.LOCATION, agent).then(() => {
       let needSetTun = true;
       time_id = setInterval(() => {
         hilog.warn(0, 'loop', '%{public}s', "setInterval");
