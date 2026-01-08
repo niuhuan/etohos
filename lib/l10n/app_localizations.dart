@@ -501,6 +501,10 @@ class AppLocalizations {
     'confirm_clear_all_history': {'en': 'Are you sure you want to clear all history records? This action cannot be undone.', 'zh': '确定要清空所有历史记录吗？此操作不可撤销。'},
     'history_deleted': {'en': 'History record deleted', 'zh': '历史记录已删除'},
     'history_cleared': {'en': 'All history cleared', 'zh': '历史记录已清空'},
+    
+    // 应用说明
+    'app_info': {'en': 'Application Information', 'zh': '应用说明'},
+    'app_info_desc': {'en': 'This application is a third-party GUI client that integrates EasyTier-Core. It has no affiliation with the official EasyTier project. The code is fully open source and follows the license agreement. We welcome you to submit issues and feedback. Thank you for downloading and using this application.', 'zh': '本应用是集成 EasyTier-Core 的第三方 GUI 客户端，与官方 EasyTier 项目无任何关系。代码遵循协议完全开源，欢迎您提出 issue 和反馈意见。感谢您的下载与使用。'},
   };
 }
 

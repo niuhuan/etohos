@@ -528,13 +528,13 @@ class _EditScreenState extends State<EditScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _buildModernButton(
-                    context,
-                    icon: Icons.devices,
-                    label: t('import_nearby'),
-                    onPressed: _importFromNearby,
-                    isPrimary: false,
-                  ),
+                  // _buildModernButton(
+                  //   context,
+                  //   icon: Icons.devices,
+                  //   label: t('import_nearby'),
+                  //   onPressed: _importFromNearby,
+                  //   isPrimary: false,
+                  // ),
                   const SizedBox(width: 12),
                   _buildModernButton(
                     context,
