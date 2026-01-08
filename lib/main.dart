@@ -8,6 +8,7 @@ import 'package:etohos/l10n/theme_provider.dart';
 import 'package:etohos/privacy_config.dart';
 import 'package:etohos/privacy_dialog.dart';
 import 'package:etohos/main_screen.dart';
+import 'package:etohos/utils/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -70,6 +71,19 @@ class _InitScreenState extends State<InitScreen> {
 
   void _init() async {
     try {
+      
+      // Get app language and initialize locale
+      final appLanguage = await methods.getAppLanguage();
+      await initializeLocale(appLanguage);
+
+      // Initialize theme
+      await initializeTheme();
+
+      // Get device type
+      AppData.deviceType = await methods.getDeviceType();
+
+      AppLogger.debug('enablePrivacyPolicy: ${AppData.deviceType}');
+      
       // 检查隐私政策同意状态（仅在 flag 为 true 时）
       if (enablePrivacyPolicy) {
         final dataDir = await methods.dataDir();
@@ -77,12 +91,6 @@ class _InitScreenState extends State<InitScreen> {
         final hasAccepted = await acceptedFile.exists();
         
         if (!hasAccepted) {
-          // 等待语言和主题初始化后再显示对话框
-          final appLanguage = await methods.getAppLanguage();
-          await initializeLocale(appLanguage);
-          await initializeTheme();
-          
-          if (!mounted) return;
           
           // 显示隐私政策对话框
           final accepted = await showDialog<bool>(
@@ -101,16 +109,6 @@ class _InitScreenState extends State<InitScreen> {
           await acceptedFile.create(recursive: true);
         }
       }
-      
-      // Get app language and initialize locale
-      final appLanguage = await methods.getAppLanguage();
-      await initializeLocale(appLanguage);
-
-      // Initialize theme
-      await initializeTheme();
-
-      // Get device type
-      AppData.deviceType = await methods.getDeviceType();
 
       // Initialize VPN
       await methods.prepareVpn();

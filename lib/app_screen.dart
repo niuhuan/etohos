@@ -991,7 +991,7 @@ class _AppScreenState extends State<AppScreen> {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),111 
+                ),
               )
             : Icon(AppData.connected ? Icons.stop : Icons.play_arrow),
       ),
