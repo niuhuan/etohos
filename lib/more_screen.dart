@@ -142,7 +142,7 @@ class MoreScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Version 1.0.5',
+                    'Version 1.0.8',
                     style: TextStyle(
                       fontSize: 13,
                       color: colorScheme.onSurface.withOpacity(0.7),
