@@ -1605,6 +1605,8 @@ class _ApiRequestEditorScreenState extends State<ApiRequestEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(t('api_request')),
@@ -1909,15 +1911,16 @@ class _ApiRequestEditorScreenState extends State<ApiRequestEditorScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey),
+                        border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
                       ),
                       child: SelectableText(
                         _response,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'monospace',
                           fontSize: 12,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ),
