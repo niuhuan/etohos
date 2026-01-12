@@ -160,7 +160,7 @@ class AppLocalizations {
     'failed_to_disconnect': {'en': 'Failed to disconnect', 'zh': '断开连接失败'},
     'failed_to_connect': {'en': 'Failed to connect', 'zh': '连接失败'},
     'loading': {'en': 'Loading...', 'zh': '加载中...'},
-    'error_preparing_vpn': {'en': 'Error preparing VPN', 'zh': 'VPN准备失败'},
+    'error_preparing_vpn': {'en': 'Error preparing EasyTier', 'zh': '权限申请失败'},
     
     // 输入提示
     'enter_instance_name': {'en': 'Enter instance name', 'zh': '输入实例名称'},
@@ -197,8 +197,8 @@ class AppLocalizations {
     'cannot_edit_active': {'en': 'Cannot edit active configuration', 'zh': '无法编辑活动配置'},
     'cannot_delete_active': {'en': 'Cannot delete active configuration', 'zh': '无法删除活动配置'},
     'switching_config': {'en': 'Switching configuration...', 'zh': '正在切换配置...'},
-    'disconnect_vpn': {'en': 'Disconnect VPN', 'zh': '断开VPN'},
-    'connect_vpn': {'en': 'Connect VPN', 'zh': '连接VPN'},
+    'disconnect_vpn': {'en': 'Disconnect EasyTier', 'zh': '断开EasyTier'},
+    'connect_vpn': {'en': 'Connect EasyTier', 'zh': '连接EasyTier'},
     'peers_count': {'en': 'peers', 'zh': '个节点'},
     
     // 设置页面
@@ -260,18 +260,18 @@ class AppLocalizations {
     'configuration_guide': {'en': 'Configuration Guide', 'zh': '配置指南'},
     'configuration_guide_subtitle': {'en': 'Learn how to configure each option', 'zh': '了解每个配置选项的作用'},
     
-    // VPN 和组网知识
-    'vpn_and_networking_knowledge': {'en': 'VPN and Networking Knowledge', 'zh': 'VPN 与组网知识'},
-    'what_is_vpn': {'en': 'What is VPN?', 'zh': '什么是 VPN？'},
-    'what_is_vpn_desc': {'en': 'VPN (Virtual Private Network) is a technology that creates a secure, encrypted connection over a public network (such as the Internet). It allows users to access private networks remotely and securely, protecting data transmission from eavesdropping and tampering.', 'zh': 'VPN（虚拟专用网络）是一种在公共网络（如互联网）上创建安全、加密连接的技术。它允许用户远程、安全地访问专用网络，保护数据传输免受窃听和篡改。'},
+    // EasyTier 和组网知识
+    'vpn_and_networking_knowledge': {'en': 'EasyTier and Networking Knowledge', 'zh': 'EasyTier 与组网知识'},
+    'what_is_vpn': {'en': 'What is EasyTier?', 'zh': '什么是 EasyTier？'},
+    'what_is_vpn_desc': {'en': 'EasyTier is a technology that creates a secure, encrypted connection over a public network (such as the Internet). It allows users to access private networks remotely and securely, protecting data transmission from eavesdropping and tampering.', 'zh': 'EasyTier 是一种在公共网络（如互联网）上创建安全、加密连接的技术。它允许用户远程、安全地访问专用网络，保护数据传输免受窃听和篡改。'},
     'what_is_networking': {'en': 'What is Networking?', 'zh': '什么是组网？'},
-    'what_is_networking_desc': {'en': 'Networking refers to connecting multiple devices or networks together to form a unified network. In the context of VPN, it means creating a virtual network that connects devices in different locations, allowing them to communicate as if they were on the same local network.', 'zh': '组网是指将多个设备或网络连接在一起，形成一个统一的网络。在 VPN 的语境下，它意味着创建一个虚拟网络，连接不同位置的设备，使它们能够像在同一局域网内一样通信。'},
-    'how_vpn_works': {'en': 'How VPN Works', 'zh': 'VPN 工作原理'},
-    'how_vpn_works_desc': {'en': 'VPN works by creating an encrypted tunnel between your device and a VPN server. All data transmitted through this tunnel is encrypted, ensuring privacy and security. The VPN server acts as an intermediary, making your actual IP address invisible to external parties.', 'zh': 'VPN 通过在您的设备和 VPN 服务器之间创建加密隧道来工作。通过此隧道传输的所有数据都经过加密，确保隐私和安全。VPN 服务器充当中间人，使您的真实 IP 地址对外部不可见。'},
+    'what_is_networking_desc': {'en': 'Networking refers to connecting multiple devices or networks together to form a unified network. In the context of EasyTier, it means creating a virtual network that connects devices in different locations, allowing them to communicate as if they were on the same local network.', 'zh': '组网是指将多个设备或网络连接在一起，形成一个统一的网络。在 EasyTier 的语境下，它意味着创建一个虚拟网络，连接不同位置的设备，使它们能够像在同一局域网内一样通信。'},
+    'how_vpn_works': {'en': 'How EasyTier Works', 'zh': 'EasyTier 工作原理'},
+    'how_vpn_works_desc': {'en': 'EasyTier works by creating an encrypted tunnel between your device and an EasyTier server. All data transmitted through this tunnel is encrypted, ensuring privacy and security. The EasyTier server acts as an intermediary, making your actual IP address invisible to external parties.', 'zh': 'EasyTier 通过在您的设备和 EasyTier 服务器之间创建加密隧道来工作。通过此隧道传输的所有数据都经过加密，确保隐私和安全。EasyTier 服务器充当中间人，使您的真实 IP 地址对外部不可见。'},
     'networking_benefits': {'en': 'Benefits of Networking', 'zh': '组网的优势'},
     'networking_benefits_desc': {'en': 'Networking allows devices in different locations to communicate securely, enables remote access to resources, supports distributed collaboration, and provides a unified network environment without physical constraints.', 'zh': '组网允许不同位置的设备安全通信，支持远程访问资源，支持分布式协作，并提供不受物理限制的统一网络环境。'},
-    'vpn_security': {'en': 'VPN Security', 'zh': 'VPN 安全性'},
-    'vpn_security_desc': {'en': 'VPN uses encryption protocols (such as WireGuard, OpenVPN) to protect data. It prevents man-in-the-middle attacks, data interception, and ensures that even if data is intercepted, it cannot be read without the encryption key.', 'zh': 'VPN 使用加密协议（如 WireGuard、OpenVPN）来保护数据。它可以防止中间人攻击、数据拦截，并确保即使数据被拦截，没有加密密钥也无法读取。'},
+    'vpn_security': {'en': 'EasyTier Security', 'zh': 'EasyTier 安全性'},
+    'vpn_security_desc': {'en': 'EasyTier uses encryption protocols (such as WireGuard) to protect data. It prevents man-in-the-middle attacks, data interception, and ensures that even if data is intercepted, it cannot be read without the encryption key.', 'zh': 'EasyTier 使用加密协议（如 WireGuard）来保护数据。它可以防止中间人攻击、数据拦截，并确保即使数据被拦截，没有加密密钥也无法读取。'},
     'decentralized_networking': {'en': 'Decentralized Networking', 'zh': '去中心化组网'},
     'decentralized_networking_desc': {'en': 'Decentralized networking means that there is no central server controlling the network. Each node is equal and independent, which improves network reliability, reduces single points of failure, and enhances privacy protection.', 'zh': '去中心化组网意味着没有中央服务器控制网络。每个节点都是平等和独立的，这提高了网络可靠性，减少了单点故障，并增强了隐私保护。'},
     'what_is_ipv6': {'en': 'What is IPv6?', 'zh': '什么是 IPv6？'},
@@ -287,11 +287,11 @@ class AppLocalizations {
     'config_guide_url': {'en': 'https://easytier.cn/en/guide/network/configurations.html', 'zh': 'https://easytier.cn/guide/network/configurations.html'},
     
     // 配置选项说明
-    'instance_name_guide_desc': {'en': 'Instance name to identify this VPN node on the same machine', 'zh': '实例名称，用于在同一台机器上标识此VPN节点'},
+    'instance_name_guide_desc': {'en': 'Instance name to identify this EasyTier node on the same machine', 'zh': '实例名称，用于在同一台机器上标识此EasyTier节点'},
     'hostname_guide_desc': {'en': 'Hostname used to identify this device', 'zh': '用于标识此设备的主机名'},
-    'network_name_guide_desc': {'en': 'Network name to identify this VPN network', 'zh': '用于标识此VPN网络的网络名称'},
-    'network_secret_guide_desc': {'en': 'Network secret key to verify that this node belongs to the VPN network', 'zh': '网络密钥，用于验证此节点属于VPN网络'},
-    'ipv4_guide_desc': {'en': 'IPv4 address for this VPN node. If empty, the node will only forward packets without creating a TUN device', 'zh': '此VPN节点的IPv4地址。如果为空，则此节点将仅转发数据包，不会创建TUN设备'},
+    'network_name_guide_desc': {'en': 'Network name to identify this EasyTier network', 'zh': '用于标识此EasyTier网络的网络名称'},
+    'network_secret_guide_desc': {'en': 'Network secret key to verify that this node belongs to the EasyTier network', 'zh': '网络密钥，用于验证此节点属于EasyTier网络'},
+    'ipv4_guide_desc': {'en': 'IPv4 address for this EasyTier node. If empty, the node will only forward packets without creating a TUN device', 'zh': '此EasyTier节点的IPv4地址。如果为空，则此节点将仅转发数据包，不会创建TUN设备'},
     'dhcp_guide_desc': {'en': 'Automatically determine and set IP address by EasyTier, starting from 10.0.0.1 by default. Warning: When using DHCP, if IP conflicts occur in the network, the IP will automatically change', 'zh': '由EasyTier自动确定并设置IP地址，默认从10.0.0.1开始。警告：在使用DHCP时，如果网络中出现IP冲突，IP将自动更改'},
     'peers_guide_desc': {'en': 'Initial peer nodes to connect to', 'zh': '最初要连接的对等节点'},
     

@@ -927,32 +927,44 @@ class _AppScreenState extends State<AppScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: Center(
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outlineVariant
-                      .withOpacity(0.8),
-                  width: 0.8,
-                ),
-              ),
-              child: Icon(
-                Icons.vpn_key_outlined,
-                size: 18,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+        // leading: Padding(
+        //   padding: const EdgeInsets.only(left: 12),
+        //   child: Center(
+        //     child: Container(
+        //       // width: 36,
+        //       height: 36,
+        //       // decoration: BoxDecoration(
+        //       //   color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+        //       //   borderRadius: BorderRadius.circular(12),
+        //       //   border: Border.all(
+        //       //     color: Theme.of(context)
+        //       //         .colorScheme
+        //       //         .outlineVariant
+        //       //         .withOpacity(0.8),
+        //       //     width: 0.8,
+        //       //   ),
+        //       // ),
+        //       child: Icon(
+        //         Icons.vpn_key_outlined,
+        //         size: 18,
+        //         // color: Theme.of(context).colorScheme.primary,
+        //       ),
+        //     ),
+        //   ),
+        // ),
+        centerTitle: false,
+        title: Row(
+          children: [
+            // const SizedBox(width: 12),
+            // Icon(Icons.vpn_key, size: 18),
+            // const SizedBox(width: 12),
+            Text(
+              // t('app_name'),
+              'Easytier',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
-          ),
+          ],
         ),
-        title: Text(t('app_name')),
         actions: [
           _buildToolsMenu(),
           // 设置按钮 - 仅在非隐私政策模式下显示

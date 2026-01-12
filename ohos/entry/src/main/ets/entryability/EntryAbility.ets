@@ -625,7 +625,7 @@ ${flags}
             if (needSetTun && infos.my_node_info.virtual_ipv4 != null && infos.peers.length > 0) {
               needSetTun = false;
               let vpnConfig: vpnExtension.VpnConfig = {
-                // Configure VPN virtual network card IP address.
+                // Configure EasyTier virtual network card IP address.
                 addresses: [{
                   address: {
                     address: convertAddrToIp(infos.my_node_info.virtual_ipv4.address.addr),
